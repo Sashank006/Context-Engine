@@ -5,6 +5,7 @@ from context_pack.dependency_parser import parse_dependencies
 from context_pack.entry_point_detector import detect_entry_point
 from context_pack.file_ranker import rank_files
 from context_pack.pattern_detector import detect_patterns
+from context_pack.context_assembler import assemble_context
 def analyze(path):
     d = {}
     files, dep_files = scan_directory(path)
@@ -18,4 +19,5 @@ def analyze(path):
     d['dep_files'] = dep_files
     d['ranked_files'] = rank_files(files, d['entry_point'])
     d['patterns'] = detect_patterns(files, dep_files, path)
+    d['context'] = assemble_context(d)
     return d

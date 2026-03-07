@@ -13,8 +13,6 @@ def scan(path: str = "."):
     
     result = analyze(path)
     
-    console.print(f"[green]Found {len(result['files'])} files[/green]\n")
-    
     table = Table(title="Code Files")
     table.add_column("File", style="cyan")
     
@@ -24,17 +22,9 @@ def scan(path: str = "."):
     if len(result['files']) > 20:
         table.add_row(f"... and {len(result['files']) - 20} more")
     
+    console.print(f"[green]Found {len(result['files'])} files[/green]\n")
     console.print(table)
-    console.print(f"\n[yellow]Language: {result['language']}[/yellow]")
-    console.print(f"[yellow]Mixed: {result['mixed']}[/yellow]")
-    console.print(f"[yellow]Framework: {result['framework']}[/yellow]")
-    console.print(f"[yellow]Entry Point: {result['entry_point']}[/yellow]")
-    console.print(f"[yellow]Dependencies: {', '.join([d['name'] for d in result['dependencies']])}[/yellow]")
-    console.print(f"[yellow]Patterns: {', '.join(result['patterns'])}[/yellow]")
-    console.print(f"\n[yellow]Top Files:[/yellow]")
-    for fp, score in result['ranked_files'][:3]:
-        console.print(f"  [cyan]{fp}[/cyan] — score: {score}")
-    
-    
+    console.print(result['context'])
+
 if __name__ == "__main__":
     app()
