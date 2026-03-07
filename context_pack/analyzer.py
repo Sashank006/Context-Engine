@@ -6,7 +6,9 @@ from context_pack.entry_point_detector import detect_entry_point
 from context_pack.file_ranker import rank_files
 from context_pack.pattern_detector import detect_patterns
 from context_pack.context_assembler import assemble_context
-def analyze(path):
+
+
+def analyze(path, max_tokens=2000):
     d = {}
     files, dep_files = scan_directory(path)
     lang_result = get_primary_language(detect_languages(files))
@@ -19,5 +21,5 @@ def analyze(path):
     d['dep_files'] = dep_files
     d['ranked_files'] = rank_files(files, d['entry_point'])
     d['patterns'] = detect_patterns(files, dep_files, path)
-    d['context'] = assemble_context(d)
+    d['context'] = assemble_context(d, max_tokens=max_tokens)
     return d
