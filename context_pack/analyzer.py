@@ -9,7 +9,7 @@ from context_pack.context_assembler import assemble_context
 from context_pack.llm_validator import get_api_key, validate_ranking
 
 
-def analyze(path, max_tokens=2000, llm_provider=None):
+def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False):
     d = {}
     files, dep_files = scan_directory(path)
     lang_result = get_primary_language(detect_languages(files))
@@ -23,8 +23,8 @@ def analyze(path, max_tokens=2000, llm_provider=None):
     d['ranked_files'] = rank_files(files, d['entry_point'])
     d['patterns'] = detect_patterns(files, dep_files, path)
 
-    # --- LLM VALIDATION (optional) ---
-    if llm_provider:
+    # --- LLM VALIDATION (only when not in deep dive mode) ---
+    if llm_provider and not skip_validation:
         api_key = get_api_key(llm_provider)
         if api_key:
             d['ranked_files'] = validate_ranking(d['ranked_files'], llm_provider, api_key)

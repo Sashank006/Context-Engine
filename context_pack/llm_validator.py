@@ -95,7 +95,7 @@ def _validate_with_gemini(ranked_files: list, api_key: str) -> list:
     client = genai.Client(api_key=api_key)
     prompt = _build_prompt(ranked_files)
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-2.5-flash',
         contents=prompt
     )
     return _parse_response(response.text, ranked_files)
