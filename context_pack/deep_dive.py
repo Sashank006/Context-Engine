@@ -52,7 +52,7 @@ def _compress_history(history: list, provider: str, api_key: str) -> list:
         exchanges_text += f"{role}: {msg['content']}\n\n"
 
     compression_request = [{"role": "user", "content": COMPRESSION_PROMPT + f"\n\n{exchanges_text}"}]
-    summary = _send_message(compression_request, provider, api_key)
+    summary = _send_message(compression_request, provider, api_key, _retry=False)  # fail fast during compression
 
     if summary is None:
         # compression failed — just drop old exchanges silently

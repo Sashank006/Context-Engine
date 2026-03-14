@@ -39,8 +39,11 @@ def validate_ranking(ranked_files: list, provider: str, api_key: str) -> list:
         return ranked_files
 
 
+MAX_PROMPT_CHARS = 12000  # cap total prompt size to avoid massive API calls
+
+
 def _build_prompt(ranked_files: list) -> str:
-    """Build the validation prompt from ranked files."""
+    """Build the validation prompt from ranked files. Capped at MAX_PROMPT_CHARS."""
     prompt = (
         "You are a code analysis assistant. Below are files from a codebase ranked by a static analysis tool.\n"
         "For each file, review the snippet and decide if it is genuinely important to understanding the codebase.\n"
@@ -52,14 +55,18 @@ def _build_prompt(ranked_files: list) -> str:
     )
 
     for fp, score in ranked_files:
-        prompt += f"--- {fp} ---\n"
+        block = f"--- {fp} ---\n"
         try:
             with open(fp, encoding='utf-8') as f:
                 lines = f.readlines()[:30]
-            prompt += ''.join(lines)
+            block += ''.join(lines)
         except (OSError, UnicodeDecodeError):
-            prompt += "[Could not read file]\n"
-        prompt += "\n"
+            block += "[Could not read file]\n"
+        block += "\n"
+
+        if len(prompt) + len(block) > MAX_PROMPT_CHARS:
+            break
+        prompt += block
 
     return prompt
 

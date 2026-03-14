@@ -81,6 +81,9 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
     sections.append(snippets_header)
     remaining_snippet_budget = snippet_budget - len(snippets_header)
 
+
+    if not ranked:
+        sections.append("\n[No files available to display]")
     for fp, _ in ranked[:num_files]:
         snippet = build_file_snippet(fp, lines_per_file)
         if snippet is None:
