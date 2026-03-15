@@ -8,7 +8,13 @@ SNIPPET_RATIO = 0.80
 
 
 def estimate_tokens(text: str) -> int:
-    return len(text) // CHARS_PER_TOKEN
+    try:
+        import tiktoken
+        enc = tiktoken.get_encoding('cl100k_base')
+        return len(enc.encode(text))
+    except ImportError:
+        # fallback to char/4 approximation if tiktoken not installed
+        return len(text) // CHARS_PER_TOKEN
 
 
 def get_snippet_config(file_count: int) -> tuple[int, int]:

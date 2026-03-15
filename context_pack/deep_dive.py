@@ -24,8 +24,13 @@ Return ONLY the summary, no preamble."""
 
 
 def _estimate_tokens(history: list) -> int:
-    total = sum(len(msg['content']) for msg in history)
-    return total // CHARS_PER_TOKEN
+    total_text = ' '.join(msg['content'] for msg in history)
+    try:
+        import tiktoken
+        enc = tiktoken.get_encoding('cl100k_base')
+        return len(enc.encode(total_text))
+    except ImportError:
+        return len(total_text) // CHARS_PER_TOKEN
 
 
 def _compress_history(history: list, provider: str, api_key: str) -> list:

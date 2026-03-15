@@ -1,3 +1,66 @@
+=== PROJECT SUMMARY ===
+Language: Python
+Framework: Typer
+Architectural Pattern: CLI Tool
+Entry Point: .\context_pack\cli.py
+Total Files: 15
+Dependencies: typer, rich, google-genai, openai, anthropic, tiktoken
+
+
+=== KEY FILES ===
+
+--- .\context_pack\file_ranker.py ---
+import os
+import re
+
+IMPORTANCE_SCORES = {
+    'main': 30,
+    'app': 25,
+    'core': 25,
+    'api': 20,
+    'server': 20,
+    'index': 20,
+    'cli': 15,
+    'config': 15,
+    'settings': 15,
+    'routes': 15,
+    'models': 15,
+    'database': 15,
+    'db': 15,
+    'auth': 10,
+    'utils': 5,
+    'helpers': 5,
+    'constants': 5,
+    'test': -20,
+    'tests': -20,
+    'spec': -15,
+    'mock': -15,
+    'fixture': -10,
+    'migrations': -10,
+    'seed': -10,
+}
+
+CONTENT_SIGNALS = {
+    'route': 8,
+    'router': 8,
+    'app.get': 8,
+    'app.post': 8,
+    'model': 6,
+    'schema': 6,
+    'if __name__': 10,
+    'app.run': 10,
+    'listen': 7,
+}
+
+UTILITY_KEYWORDS = ['utils', 'helpers', 'constants', 'colors', 'types', 'enums']
+TEST_KEYWORDS = ['test', 'tests', 'spec', 'mock']
+
+
+def build_import_map(file_paths):
+    import_counts = {fp: 0 for fp in file_paths}
+    test_only = {fp: True for fp in file_paths}
+
+--- .\context_pack\cli.py ---
 import typer
 import os
 from rich.console import Console
@@ -48,45 +111,11 @@ def scan(
     path: str = ".",
     budget: int = typer.Option(2000, "--budget", "-b", help="Max token budget for context output (default: 2000)"),
     llm: Optional[str] = typer.Option(None, "--llm", help="LLM provider: gemini, openai, anthropic"),
-    deep_dive: bool = typer.Option(False, "--deep-dive", "-d", help="Start interactive Deep Dive mode after analysis"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Save context to file e.g. context.md or context.txt")
-):
-    """Scan a directory and generate LLM-ready context."""
-    console.print(f"[blue]Scanning: {path}[/blue]")
-    if budget != 2000:
-        console.print(f"[yellow]Token budget set to: {budget}[/yellow]")
-    if llm and not deep_dive:
-        console.print(f"[yellow]LLM validation enabled: {llm}[/yellow]")
 
-    result = analyze(path, max_tokens=budget, llm_provider=llm, skip_validation=deep_dive)
-
-    table = Table(title="Code Files")
-    table.add_column("File", style="cyan")
-
-    for f in result['files'][:20]:
-        table.add_row(f)
-
-    if len(result['files']) > 20:
-        table.add_row(f"... and {len(result['files']) - 20} more")
-
-    console.print(f"[green]Found {len(result['files'])} files[/green]\n")
-    console.print(table)
-    console.print(result['context'])
-
-    # --- SAVE OUTPUT ---
-    if output:
-        save_output(result['context'], output)
-
-    # --- DEEP DIVE MODE ---
-    if deep_dive:
-        if not llm:
-            console.print("[red]Deep Dive requires --llm. Example: --llm gemini[/red]")
-            return
-        api_key = get_api_key(llm)
-        if not api_key:
-            console.print(f"[red]No API key found for {llm}. Set {llm.upper()}_API_KEY environment variable.[/red]")
-            return
-        start_deep_dive(result["context"], llm, api_key, result["ranked_files"])
+--- .\context_pack\__main__.py ---
+from context_pack.cli import app
 
 if __name__ == "__main__":
     app()
+
+=== Token estimate: 832 / 2000 ===

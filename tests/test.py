@@ -30,8 +30,12 @@ def test_estimate_tokens_empty():
     assert estimate_tokens("") == 0
 
 def test_estimate_tokens_large():
+    # tiktoken counts 400 repeated "a" chars as 50 tokens
+    # we just verify it returns a positive integer, not the chars/4 assumption
     text = "a" * 400
-    assert estimate_tokens(text) == 100
+    result = estimate_tokens(text)
+    assert isinstance(result, int)
+    assert result > 0
 
 
 # ─── get_snippet_config ───────────────────────────────────────────────────────
@@ -165,3 +169,32 @@ def test_parse_response_unknown_files_appended():
     result = _parse_response(response, ranked_files)
     assert result[0][0] == './a.py'
     assert result[1][0] == './b.py'  # appended as safety net
+
+
+# ─── analyzer ────────────────────────────────────────────────────────────────
+
+def test_analyze_no_llm():
+    # should run fine with no LLM provider
+    result = analyze(".")
+    assert 'language' in result
+    assert 'ranked_files' in result
+    assert 'context' in result
+
+def test_analyze_skip_validation():
+    # skip_validation=True should not call LLM even if provider is set
+    # we pass a fake provider with no real key — if validation runs it would fail
+    # but with skip_validation=True it should complete normally
+    result = analyze(".", llm_provider='gemini', skip_validation=True)
+    assert result['language'] == 'Python'
+    assert len(result['ranked_files']) > 0
+
+def test_analyze_invalid_path():
+    # invalid path should raise an error, not silently return empty results
+    with pytest.raises(Exception):
+        analyze("/this/path/does/not/exist")
+
+def test_analyze_returns_context_string():
+    result = analyze(".")
+    assert isinstance(result['context'], str)
+    assert len(result['context']) > 0
+    assert 'PROJECT SUMMARY' in result['context']
