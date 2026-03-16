@@ -7,28 +7,30 @@ ContextPack scans any codebase and generates a structured, token-efficient summa
 
 ## Demo
 
-Run ContextPack on the [Neovim](https://github.com/neovim/neovim) repository (500+ files, C codebase):
+Run ContextPack on the [Neovim](https://github.com/neovim/neovim) repository (1300+ files, C codebase):
 
 ```
-$ python -m context_pack --path ~/neovim
+$ python -m context_pack --path ~/neovim --output context.md
 
 Scanning: C:/Users/Sasha/neovim
-[warning] Large codebase detected — limiting to 500 files for performance.
-Found 500 files
+Found 1312 files
 
 === PROJECT SUMMARY ===
 Language: C
+Mixed codebase: Yes
 Framework: Unknown
 Architectural Pattern: General Project
 Entry Point: src/nvim/main.c
-Total Files: 500
+Total Files: 1312
 
 === KEY FILES ===
 --- src/nvim/main.c ---
 --- src/nvim/lua/api_wrappers.c ---
+--- src/nvim/mapping.c ---
 --- src/mpack/mpack_core.c ---
 
-=== Token estimate: 1277 / 2000 ===
+=== Token estimate: 4821 / 6000 ===
+Context saved to: context.md
 ```
 
 ---
@@ -128,9 +130,9 @@ Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Ko
 
 - File ranking is heuristic-based — self-referential files (e.g. a ranker that contains ranking keywords) may score incorrectly without LLM validation
 - Pattern detection uses keyword matching, not structural analysis
-- Dependency files only checked in project root, not subdirectories
 - Token estimation uses `tiktoken` (cl100k_base encoding) — accurate for GPT models, approximate for others
-- Only first entry point returned for monorepos with multiple entry points
+- Only first entry point returned for monorepos with multiple entry points — full monorepo support planned
+- Projects that deeply embed a scripting language in C source (e.g. Neovim embeds Lua in `src/`) may show wrong primary language — use `.contextignore` to exclude non-core folders
 
 ---
 
