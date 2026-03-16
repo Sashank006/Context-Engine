@@ -1,7 +1,7 @@
 import os
 from context_pack.language_detector import EXTENSION_MAP
 
-MAX_FILES = 500
+MAX_FILES = 3000
 
 def scan_directory(path="."):
     """Walk directory and find code files and dependency files."""
@@ -12,7 +12,7 @@ def scan_directory(path="."):
     if not os.path.isdir(path):
         raise ValueError(f"Path is not a directory: {path}")
 
-    ignore_folders = set(['venv', '__pycache__', '.git', 'node_modules', '.idea', '.vscode', 'dist', 'build', 'target', 'runtime', 'vendor', 'examples', 'docs', 'assets', 'static', 'migrations', 'fixtures', 'third_party'])
+    ignore_folders = set(['venv', '__pycache__', '.git', 'node_modules', '.idea', '.vscode', 'dist', 'build', 'target', 'runtime', 'vendor', 'examples', 'docs', 'assets', 'static', 'migrations', 'fixtures', 'third_party', 'contrib', 'scripts', 'tools', 'ci', '.github', 'cmake', 'bin', 'obj', 'out', 'coverage', 'gen', 'generated', 'autoconf', 'autom4te.cache'])
 
     # load .contextignore if present in scanned path
     contextignore_path = os.path.join(path, '.contextignore')
@@ -51,12 +51,15 @@ def scan_directory(path="."):
         if len(code_files) >= MAX_FILES:
             break
 
-    # check for dependency files in root only
+    # check for dependency files in root and one level deep
     found_dependency_files = []
-    for dep_file in dependency_files:
-        full_path = os.path.join(path, dep_file)
-        if os.path.exists(full_path):
-            found_dependency_files.append(full_path)
+    search_dirs = [path] + [os.path.join(path, d) for d in os.listdir(path) 
+                            if os.path.isdir(os.path.join(path, d))]
+    for search_dir in search_dirs:
+        for dep_file in dependency_files:
+            full_path = os.path.join(search_dir, dep_file)
+            if os.path.exists(full_path) and full_path not in found_dependency_files:
+                found_dependency_files.append(full_path)
 
     return code_files, found_dependency_files
 

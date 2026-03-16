@@ -1,0 +1,147 @@
+# ContextPack 🗜️
+> LLM-Ready Codebase Context Engine
+
+ContextPack scans any codebase and generates a structured, token-efficient summary you can drop straight into any LLM — so you spend less time explaining your code and more time building.
+
+---
+
+## Demo
+
+Run ContextPack on the [Neovim](https://github.com/neovim/neovim) repository (500+ files, C codebase):
+
+```
+$ python -m context_pack --path ~/neovim
+
+Scanning: C:/Users/Sasha/neovim
+[warning] Large codebase detected — limiting to 500 files for performance.
+Found 500 files
+
+=== PROJECT SUMMARY ===
+Language: C
+Framework: Unknown
+Architectural Pattern: General Project
+Entry Point: src/nvim/main.c
+Total Files: 500
+
+=== KEY FILES ===
+--- src/nvim/main.c ---
+--- src/nvim/lua/api_wrappers.c ---
+--- src/mpack/mpack_core.c ---
+
+=== Token estimate: 1277 / 2000 ===
+```
+
+---
+
+## Features
+
+- **Static analysis engine** — detects language, framework, architectural patterns, entry points, and dependencies with zero LLM cost
+- **Smart file ranking** — multi-signal scoring combining filename heuristics, content signals, import graph analysis, and depth penalties
+- **Token-efficient output** — adaptive 20/80 metadata/snippet split, priority-first assembly, never truncates mid-file
+- **LLM validation** — optional re-ranking of files using your own API key (Gemini, OpenAI, Anthropic)
+- **Deep Dive mode** — RAG-powered conversation loop, ask questions about any codebase interactively
+- **Session memory** — automatically compresses conversation history to stay within token limits
+- **Output to file** — save context as `.md` or `.txt` for sharing or reuse
+- **`.contextignore` support** — exclude folders per-project, just like `.gitignore`
+- **40+ languages supported** — Python, C, C++, JavaScript, TypeScript, Rust, Go, Java, Kotlin, Lua, and more
+
+---
+
+## Requirements
+
+- Python 3.10+
+- Windows, macOS, or Linux
+
+---
+
+## Installation
+
+```bash
+# clone the repo
+git clone https://github.com/Sashank006/Context-Engine.git
+cd Context-Engine
+
+# create and activate virtual environment
+python -m venv venv
+source venv/bin/activate        # Mac/Linux
+source venv/Scripts/activate    # Windows
+
+# install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+## Usage
+
+### Basic scan (current directory)
+```bash
+python -m context_pack
+```
+
+### Scan a specific path
+```bash
+python -m context_pack --path /path/to/repo
+```
+
+### Save output to file
+```bash
+python -m context_pack --output context.md
+python -m context_pack --output context.txt
+```
+
+### Set custom token budget
+```bash
+python -m context_pack --budget 4000
+```
+
+### LLM-powered file ranking validation
+```bash
+# set your API key first
+export GEMINI_API_KEY=your_key_here
+
+python -m context_pack --llm gemini
+```
+
+### Deep Dive mode — ask questions about the codebase
+```bash
+python -m context_pack --llm gemini --deep-dive
+```
+
+### Ignore folders with `.contextignore`
+Create a `.contextignore` file in the project root:
+```
+# ignore neovim runtime plugins
+runtime
+contrib
+```
+
+---
+
+## Supported Languages
+
+Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Kotlin, Lua, Shell, VimScript, Scala, Haskell, Elixir, Dart, R, HTML, CSS and more.
+
+---
+
+## Known Limitations
+
+- File ranking is heuristic-based — self-referential files (e.g. a ranker that contains ranking keywords) may score incorrectly without LLM validation
+- Pattern detection uses keyword matching, not structural analysis
+- Dependency files only checked in project root, not subdirectories
+- Token estimation uses `tiktoken` (cl100k_base encoding) — accurate for GPT models, approximate for others
+- Only first entry point returned for monorepos with multiple entry points
+
+---
+
+## How It Works
+
+ContextPack runs a strict separation-of-concerns pipeline:
+
+```
+scan → detect language → detect framework → parse dependencies
+     → detect entry point → rank files → detect patterns
+     → assemble context (token-budgeted)
+```
+
+LLM is an optional enhancement layer — the static engine works standalone.

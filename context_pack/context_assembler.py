@@ -2,9 +2,12 @@ import os
 
 DEFAULT_MAX_TOKENS = 2000
 CHARS_PER_TOKEN = 4
+TOKENS_PER_FILE = 150  # estimated tokens per file snippet
 
 METADATA_RATIO = 0.20
 SNIPPET_RATIO = 0.80
+
+MIN_LINES_PER_FILE = 50  # minimum lines per file snippet
 
 
 def estimate_tokens(text: str) -> int:
@@ -13,21 +16,27 @@ def estimate_tokens(text: str) -> int:
         enc = tiktoken.get_encoding('cl100k_base')
         return len(enc.encode(text))
     except ImportError:
-        # fallback to char/4 approximation if tiktoken not installed
         return len(text) // CHARS_PER_TOKEN
 
 
-def get_snippet_config(file_count: int) -> tuple[int, int]:
+def get_important_file_count(total_files: int) -> int:
+    """Return 25% of total files, minimum 5."""
+    return max(5, total_files // 4)
+
+
+def get_dynamic_budget(important_count: int, user_budget: int) -> int:
     """
-    Adaptive snippet config based on codebase size.
-    Returns (num_files, lines_per_file)
+    Calculate token budget dynamically based on important file count.
+    User can override with --budget flag.
+    If user set a custom budget, respect it.
+    Otherwise calculate based on file count.
     """
-    if file_count < 20:
-        return 3, 50
-    elif file_count < 50:
-        return 5, 30
-    else:
-        return 7, 20
+    if user_budget != DEFAULT_MAX_TOKENS:
+        return user_budget  # user explicitly set budget, respect it
+
+    calculated = important_count * TOKENS_PER_FILE
+    # clamp between 2000 and 12000
+    return max(2000, min(calculated, 12000))
 
 
 def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
@@ -44,7 +53,6 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     deps = [d['name'] for d in analysis.get('dependencies', [])]
     if deps:
         dep_line = f"Dependencies: {', '.join(deps)}"
-        # if deps push us over metadata budget, truncate the list
         base = '\n'.join(lines)
         if len(base) + len(dep_line) > metadata_char_budget:
             dep_line = f"Dependencies: {', '.join(deps[:10])} ... (truncated)"
@@ -53,14 +61,17 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     return '\n'.join(lines)
 
 
-def build_file_snippet(filepath: str, max_lines: int) -> str:
+def build_file_snippet(filepath: str, char_budget: int) -> str:
     """
-    Returns a clean snippet for a single file.
+    Returns a clean snippet for a single file within char_budget.
+    Converts char budget to lines, with a minimum floor of MIN_LINES_PER_FILE.
     Returns None if file can't be read.
     """
+    # convert char budget to lines, respect minimum floor
+    lines_allowed = max(MIN_LINES_PER_FILE, char_budget // 40)  # ~40 chars per line
     try:
         with open(filepath, encoding='utf-8') as f:
-            lines = f.readlines()[:max_lines]
+            lines = f.readlines()[:lines_allowed]
         snippet = ''.join(lines).strip()
         return f"\n--- {filepath} ---\n{snippet}"
     except (OSError, UnicodeDecodeError):
@@ -68,33 +79,38 @@ def build_file_snippet(filepath: str, max_lines: int) -> str:
 
 
 def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> str:
-    max_chars = max_tokens * CHARS_PER_TOKEN
+    total_files = len(analysis['files'])
+    ranked = analysis.get('ranked_files', [])
+
+    # --- DYNAMIC BUDGET ---
+    important_count = get_important_file_count(total_files)
+    effective_tokens = get_dynamic_budget(important_count, max_tokens)
+    max_chars = effective_tokens * CHARS_PER_TOKEN
     metadata_budget = int(max_chars * METADATA_RATIO)
     snippet_budget = int(max_chars * SNIPPET_RATIO)
 
     sections = []
 
-    # --- PRIORITY 1: Metadata (capped at 20% of budget) ---
+    # --- PRIORITY 1: Metadata ---
     metadata = build_metadata_block(analysis, metadata_budget)
     sections.append(metadata)
 
-    # --- PRIORITY 2: File snippets (get 80% of budget) ---
-    file_count = len(analysis['files'])
-    num_files, lines_per_file = get_snippet_config(file_count)
-    ranked = analysis.get('ranked_files', [])
-
+    # --- PRIORITY 2: File snippets ---
     snippets_header = "\n\n=== KEY FILES ==="
     sections.append(snippets_header)
     remaining_snippet_budget = snippet_budget - len(snippets_header)
 
-
     if not ranked:
         sections.append("\n[No files available to display]")
-    for fp, _ in ranked[:num_files]:
-        snippet = build_file_snippet(fp, lines_per_file)
+
+    # iterate top 25% of ranked files, add as many as budget allows
+    files_to_show = ranked[:important_count]
+    per_file_budget = remaining_snippet_budget // max(len(files_to_show), 1)
+
+    for fp, _ in files_to_show:
+        snippet = build_file_snippet(fp, per_file_budget)
         if snippet is None:
             continue
-        # Only include if the full snippet fits — no half files
         if len(snippet) > remaining_snippet_budget:
             sections.append("\n[Token budget reached — use Deep Dive for remaining files]")
             break
@@ -104,6 +120,6 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
     # --- ASSEMBLE ---
     full_output = '\n'.join(sections)
     token_count = estimate_tokens(full_output)
-    full_output += f"\n\n=== Token estimate: {token_count} / {max_tokens} ==="
+    full_output += f"\n\n=== Token estimate: {token_count} / {effective_tokens} ==="
 
     return full_output
