@@ -13,6 +13,9 @@ CONTENT_SIGNALS = {
     'PHP': ['<?php'],
     'C#': ['static void Main(', 'static async Task Main('],
     'C++': ['int main('],
+    'C': ['int main(', 'void main('],
+    'Lua': ['require(', 'dofile('],
+    'Shell': ['#!/bin/bash', '#!/bin/sh'],
 }
 
 ENTRY_POINT_FILENAMES = {
@@ -28,19 +31,23 @@ ENTRY_POINT_FILENAMES = {
     'PHP': ['index.php', 'app.php', 'main.php'],
     'C#': ['Program.cs', 'Main.cs', 'Startup.cs'],
     'C++': ['main.cpp', 'app.cpp'],
+    'C': ['main.c', 'app.c'],
     'Scala': ['Main.scala', 'App.scala'],
     'Elixir': ['mix.exs', 'application.ex'],
     'Haskell': ['Main.hs', 'app.hs'],
     'Dart': ['main.dart'],
     'R': ['main.R', 'app.R', 'run.R'],
-    'Julia': ['main.jl', 'app.jl'],
-    'Perl': ['main.pl', 'app.pl', 'index.pl'],
     'Lua': ['main.lua', 'app.lua'],
+    'Shell': ['main.sh', 'run.sh', 'start.sh'],
 }
 
 def detect_entry_point(file_paths, primary_language):
     signals = CONTENT_SIGNALS.get(primary_language, [])
+    # skip header files — they declare but never define entry points
+    skip_extensions = {'.h', '.hpp', '.hh'}
     for fp in file_paths:
+        if os.path.splitext(fp)[1] in skip_extensions:
+            continue
         if os.path.getsize(fp) > 2_000_000:
             continue
         try:
@@ -59,4 +66,3 @@ def detect_entry_point(file_paths, primary_language):
                 return fp
     
     return "Unknown"
-    

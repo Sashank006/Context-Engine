@@ -1,18 +1,69 @@
 import os
+
 EXTENSION_MAP = {
+    # Python
     '.py': 'Python',
+    # JavaScript / TypeScript
     '.js': 'JavaScript',
     '.ts': 'TypeScript',
     '.jsx': 'JavaScript',
     '.tsx': 'TypeScript',
+    '.mjs': 'JavaScript',
+    '.cjs': 'JavaScript',
+    # Java
     '.java': 'Java',
-    '.go': 'Go',
-    '.rb': 'Ruby',
-    '.rs': 'Rust',
-    '.php': 'PHP',
-    '.cs': 'C#',
+    # C / C++
+    '.c': 'C',
+    '.h': 'C',
+    '.cc': 'C++',
     '.cpp': 'C++',
-    }
+    '.cxx': 'C++',
+    '.hpp': 'C++',
+    # C#
+    '.cs': 'C#',
+    # Go
+    '.go': 'Go',
+    # Rust
+    '.rs': 'Rust',
+    # Ruby
+    '.rb': 'Ruby',
+    '.erb': 'Ruby',
+    # PHP
+    '.php': 'PHP',
+    # Swift
+    '.swift': 'Swift',
+    # Kotlin
+    '.kt': 'Kotlin',
+    '.kts': 'Kotlin',
+    # Lua
+    '.lua': 'Lua',
+    # Shell
+    '.sh': 'Shell',
+    '.bash': 'Shell',
+    '.zsh': 'Shell',
+    # Vim
+    '.vim': 'VimScript',
+    '.nvim': 'VimScript',
+    # Scala
+    '.scala': 'Scala',
+    # Haskell
+    '.hs': 'Haskell',
+    # Elixir
+    '.ex': 'Elixir',
+    '.exs': 'Elixir',
+    # Dart
+    '.dart': 'Dart',
+    # R
+    '.r': 'R',
+    '.R': 'R',
+    # MATLAB
+    '.m': 'MATLAB',
+    # HTML / CSS (front end projects)
+    '.html': 'HTML',
+    '.css': 'CSS',
+    '.scss': 'CSS',
+    '.sass': 'CSS',
+}
 
 
 def detect_languages(file_paths):
@@ -27,6 +78,7 @@ def detect_languages(file_paths):
         else:
             language_counts[lang] = 1
     return language_counts
+
 
 def get_primary_language(counts):
     if not counts:

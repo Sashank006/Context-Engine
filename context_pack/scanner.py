@@ -1,4 +1,5 @@
 import os
+from context_pack.language_detector import EXTENSION_MAP
 
 MAX_FILES = 500
 
@@ -11,8 +12,20 @@ def scan_directory(path="."):
     if not os.path.isdir(path):
         raise ValueError(f"Path is not a directory: {path}")
 
-    code_extensions = ['.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.go', '.rb', '.rs', '.php', '.cs', '.cpp']
-    ignore_folders = ['venv', '__pycache__', '.git', 'node_modules']
+    ignore_folders = set(['venv', '__pycache__', '.git', 'node_modules', '.idea', '.vscode', 'dist', 'build', 'target', 'runtime', 'vendor', 'examples', 'docs', 'assets', 'static', 'migrations', 'fixtures', 'third_party'])
+
+    # load .contextignore if present in scanned path
+    contextignore_path = os.path.join(path, '.contextignore')
+    if os.path.exists(contextignore_path):
+        try:
+            with open(contextignore_path, encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        ignore_folders.add(line.strip('/'))
+            print(f"[info] Loaded .contextignore from {contextignore_path}")
+        except (OSError, UnicodeDecodeError):
+            pass
     dependency_files = [
         'requirements.txt', 'Pipfile', 'pyproject.toml',
         'package.json', 'go.mod', 'Cargo.toml',
@@ -20,6 +33,7 @@ def scan_directory(path="."):
         'pubspec.yaml', 'mix.exs', 'Package.swift',
     ]
 
+    code_extensions = set(EXTENSION_MAP.keys())  # single source of truth
     code_files = []
     warned = False
 
