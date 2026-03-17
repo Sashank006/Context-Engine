@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "context-pack"
+version = "0.1.0"
+description = "LLM-Ready Codebase Context Engine"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Sashank"}
+]
+keywords = ["llm", "codebase", "context", "ai", "developer-tools"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "tiktoken>=0.5.0",
+    "google-genai>=0.1.0",
+    "openai>=1.0.0",
+    "anthropic>=0.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+context-pack = "context_pack.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/Sashank006/Context-Engine"
+Repository = "https://github.com/Sashank006/Context-Engine"
+
+[tool.setuptools]
+packages = ["context_pack"]
