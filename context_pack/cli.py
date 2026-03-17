@@ -1,14 +1,37 @@
 import typer
 import os
+import tempfile
+import shutil
+import subprocess
 from rich.console import Console
 from rich.table import Table
 from context_pack.analyzer import analyze
 from context_pack.llm_validator import get_api_key
 from context_pack.deep_dive import start_deep_dive
 from typing import Optional
+from context_pack.cache import get_cached, save_cache, clear_cache
+from context_pack.diff_context import get_diff, format_diff_output
 
 app = typer.Typer()
 console = Console()
+
+
+def clone_repo(url: str) -> str | None:
+    """Clone a GitHub repo to a temp directory. Returns the temp path or None on failure."""
+    tmp_dir = tempfile.mkdtemp(prefix='contextpack_')
+    console.print(f"[blue]Cloning {url}...[/blue]")
+    try:
+        subprocess.run(
+            ['git', 'clone', '--depth=1', url, tmp_dir],
+            check=True,
+            capture_output=True
+        )
+        console.print(f"[green]Cloned successfully.[/green]")
+        return tmp_dir
+    except subprocess.CalledProcessError as e:
+        console.print(f"[red]Failed to clone repo: {e.stderr.decode().strip()}[/red]")
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return None
 
 
 def save_output(context: str, output_path: str):
@@ -16,7 +39,6 @@ def save_output(context: str, output_path: str):
     ext = os.path.splitext(output_path)[1].lower()
 
     if ext == '.md':
-        # wrap code snippets in markdown code blocks
         lines = []
         in_file_block = False
         for line in context.split('\n'):
@@ -46,12 +68,54 @@ def save_output(context: str, output_path: str):
 @app.command()
 def scan(
     path: str = ".",
+    url: Optional[str] = typer.Option(None, "--url", "-u", help="GitHub URL to clone and analyze"),
     budget: int = typer.Option(2000, "--budget", "-b", help="Max token budget for context output (default: 2000)"),
     llm: Optional[str] = typer.Option(None, "--llm", help="LLM provider: gemini, openai, anthropic"),
     deep_dive: bool = typer.Option(False, "--deep-dive", "-d", help="Start interactive Deep Dive mode after analysis"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Save context to file e.g. context.md or context.txt")
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="Save context to file e.g. context.md or context.txt"),
+    clear_cache_flag: bool = typer.Option(False, "--clear-cache", help="Clear cached result for this path and re-analyze"),
+    show_diff: bool = typer.Option(False, "--diff", help="Show unstaged changes"),
+    diff_target: Optional[str] = typer.Option(None, "--diff-target", help="Diff against a commit or branch e.g. HEAD or main")
 ):
-    """Scan a directory and generate LLM-ready context."""
+    """Scan a directory or GitHub URL and generate LLM-ready context."""
+
+    tmp_dir = None
+
+    # --- GITHUB URL MODE ---
+    if url:
+        tmp_dir = clone_repo(url)
+        if tmp_dir is None:
+            return
+        path = tmp_dir
+
+    # --- CACHE CHECK ---
+    if clear_cache_flag:
+        clear_cache(path)
+        console.print(f"[yellow]Cache cleared for: {path}[/yellow]")
+        return
+
+    cached = get_cached(path)
+    if cached:
+        console.print(f"[green]Using cached result (repo unchanged). Use --clear-cache to force re-analysis.[/green]")
+        console.print(cached)
+        if output:
+            save_output(cached, output)
+        return
+
+    # --- DIFF MODE ---
+    if show_diff or diff_target:
+        console.print(f"[blue]Running diff on: {path}[/blue]")
+        result = analyze(path, max_tokens=budget)
+        diff_result = get_diff(path, target=diff_target if diff_target else None)
+        if diff_result is None:
+            console.print("[red]Could not run git diff. Is this a git repository?[/red]")
+            return
+        output_text = format_diff_output(diff_result, result['ranked_files'])
+        console.print(output_text)
+        if output:
+            save_output(output_text, output)
+        return
+
     console.print(f"[blue]Scanning: {path}[/blue]")
     if budget != 2000:
         console.print(f"[yellow]Token budget set to: {budget}[/yellow]")
@@ -73,6 +137,9 @@ def scan(
     console.print(table)
     console.print(result['context'])
 
+    # --- SAVE TO CACHE ---
+    save_cache(path, result['context'])
+
     # --- SAVE OUTPUT ---
     if output:
         save_output(result['context'], output)
@@ -81,12 +148,21 @@ def scan(
     if deep_dive:
         if not llm:
             console.print("[red]Deep Dive requires --llm. Example: --llm gemini[/red]")
+            if tmp_dir:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
             return
         api_key = get_api_key(llm)
         if not api_key:
             console.print(f"[red]No API key found for {llm}. Set {llm.upper()}_API_KEY environment variable.[/red]")
+            if tmp_dir:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
             return
         start_deep_dive(result["context"], llm, api_key, result["ranked_files"])
+
+    # --- CLEANUP TEMP DIR ---
+    if tmp_dir:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        console.print(f"[blue]Cleaned up temp directory.[/blue]")
 
 if __name__ == "__main__":
     app()
