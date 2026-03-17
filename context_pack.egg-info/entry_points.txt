@@ -1,2 +1,0 @@
-[console_scripts]
-context-pack = context_pack.cli:app
