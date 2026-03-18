@@ -24,24 +24,29 @@ LANGUAGE_DEP_FILES = {
     'Lua': ['rockspec'],
 }
 
+# ORDER MATTERS — more specific frameworks must come before generic ones
+# e.g. Next.js before React, NestJS before Express, FastAPI before Flask
 FRAMEWORK_SIGNATURES = {
-    'Flask': {'dependencies': ['flask'], 'files': []},
-    'Django': {'dependencies': ['django'], 'files': ['manage.py']},
-    'FastAPI': {'dependencies': ['fastapi'], 'files': []},
-    'React': {'dependencies': ['react'], 'files': []},
-    'Next.js': {'dependencies': ['next'], 'files': ['next.config.js']},
-    'Express': {'dependencies': ['express'], 'files': []},
-    'Vue': {'dependencies': ['vue'], 'files': []},
+    # JavaScript/TypeScript — specific before generic
+    'Next.js': {'dependencies': ['next'], 'files': ['next.config.js', 'next.config.mjs', 'next.config.ts']},
+    'NestJS': {'dependencies': ['@nestjs/core'], 'files': []},
     'Angular': {'dependencies': ['@angular/core'], 'files': ['angular.json']},
+    'Svelte': {'dependencies': ['svelte'], 'files': ['svelte.config.js']},
+    'Vue': {'dependencies': ['vue'], 'files': []},
+    'React': {'dependencies': ['react'], 'files': []},
+    'Express': {'dependencies': ['express'], 'files': []},
+    # Python — specific before generic
+    'FastAPI': {'dependencies': ['fastapi'], 'files': []},
+    'Django': {'dependencies': ['django'], 'files': ['manage.py']},
+    'Flask': {'dependencies': ['flask'], 'files': []},
+    'Typer': {'dependencies': ['typer'], 'files': []},
+    'Click': {'dependencies': ['click'], 'files': []},
+    # Other languages
     'Spring': {'dependencies': ['spring-boot'], 'files': []},
     'Rails': {'dependencies': ['rails'], 'files': []},
     'Laravel': {'dependencies': ['laravel/framework'], 'files': []},
-    'Svelte': {'dependencies': ['svelte'], 'files': ['svelte.config.js']},
-    'NestJS': {'dependencies': ['@nestjs/core'], 'files': []},
     'Gin': {'dependencies': ['gin-gonic/gin'], 'files': []},
     'Fiber': {'dependencies': ['gofiber/fiber'], 'files': []},
-    'Typer': {'dependencies': ['typer'], 'files': []},
-    'Click': {'dependencies': ['click'], 'files': []},
 }
 
 

@@ -19,9 +19,17 @@ def estimate_tokens(text: str) -> int:
         return len(text) // CHARS_PER_TOKEN
 
 
-def get_important_file_count(total_files: int) -> int:
-    """Return 25% of total files, minimum 5."""
-    return max(5, total_files // 4)
+def get_important_file_count(total_files: int, max_tokens: int = DEFAULT_MAX_TOKENS) -> int:
+    """
+    Return 25% of total files, but capped so each file gets at least MIN_LINES_PER_FILE lines.
+    Ensures we never try to show more files than the budget supports.
+    """
+    raw_count = max(5, total_files // 4)
+    # each file needs at minimum MIN_LINES_PER_FILE * ~40 chars
+    min_chars_per_file = MIN_LINES_PER_FILE * 40
+    snippet_budget = int(max_tokens * CHARS_PER_TOKEN * SNIPPET_RATIO)
+    max_supported = max(1, snippet_budget // min_chars_per_file)
+    return min(raw_count, max_supported)
 
 
 def get_dynamic_budget(important_count: int, user_budget: int) -> int:
@@ -83,8 +91,11 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
     ranked = analysis.get('ranked_files', [])
 
     # --- DYNAMIC BUDGET ---
-    important_count = get_important_file_count(total_files)
-    effective_tokens = get_dynamic_budget(important_count, max_tokens)
+    # first pass: estimate budget with rough file count
+    rough_count = max(5, total_files // 4)
+    effective_tokens = get_dynamic_budget(rough_count, max_tokens)
+    # second pass: refine important count based on actual budget
+    important_count = get_important_file_count(total_files, effective_tokens)
     max_chars = effective_tokens * CHARS_PER_TOKEN
     metadata_budget = int(max_chars * METADATA_RATIO)
     snippet_budget = int(max_chars * SNIPPET_RATIO)
