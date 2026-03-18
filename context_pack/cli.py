@@ -34,26 +34,81 @@ def clone_repo(url: str) -> str | None:
         return None
 
 
+def format_as_markdown(context: str) -> str:
+    """Convert raw context output into clean markdown with tables and code blocks."""
+    lines = context.split('\n')
+    md = []
+    i = 0
+
+    md.append("# ContextPack — Project Summary\n")
+
+    while i < len(lines):
+        line = lines[i]
+
+        # metadata section
+        if line.strip() == '=== PROJECT SUMMARY ===':
+            md.append("## Metadata\n")
+            md.append("| Field | Value |")
+            md.append("|-------|-------|")
+            i += 1
+            while i < len(lines) and not lines[i].startswith('==='):
+                meta_line = lines[i].strip()
+                if ': ' in meta_line:
+                    key, val = meta_line.split(': ', 1)
+                    md.append(f"| {key} | {val} |")
+                i += 1
+            md.append("")
+
+        # key files section
+        elif line.strip() == '=== KEY FILES ===':
+            md.append("## Key Files\n")
+            i += 1
+
+        # file header
+        elif line.startswith('--- ') and line.endswith(' ---'):
+            filepath = line[4:-4].strip()
+            ext = os.path.splitext(filepath)[1].lstrip('.')
+            lang_map = {
+                'py': 'python', 'js': 'javascript', 'ts': 'typescript',
+                'c': 'c', 'cpp': 'cpp', 'h': 'c', 'java': 'java',
+                'go': 'go', 'rs': 'rust', 'rb': 'ruby', 'lua': 'lua',
+                'sh': 'bash', 'cs': 'csharp', 'kt': 'kotlin',
+            }
+            lang = lang_map.get(ext, '')
+            md.append(f"### `{filepath}`")
+            md.append(f"```{lang}")
+            i += 1
+            # collect code lines until next file or section
+            while i < len(lines):
+                next_line = lines[i]
+                if (next_line.startswith('--- ') and next_line.endswith(' ---')) or next_line.startswith('===') or 'Token budget reached' in next_line:
+                    break
+                md.append(next_line)
+                i += 1
+            md.append("```\n")
+
+        # token estimate line
+        elif line.startswith('=== Token estimate'):
+            md.append(f"\n---\n_{line.strip('=').strip()}_")
+            i += 1
+
+        # token budget message
+        elif 'Token budget reached' in line:
+            md.append(f"\n> {line.strip()}")
+            i += 1
+
+        else:
+            i += 1
+
+    return '\n'.join(md)
+
+
 def save_output(context: str, output_path: str):
     """Save context to .md or .txt file."""
     ext = os.path.splitext(output_path)[1].lower()
 
     if ext == '.md':
-        lines = []
-        in_file_block = False
-        for line in context.split('\n'):
-            if line.startswith('--- ') and line.endswith(' ---'):
-                lines.append(f'\n```\n{line}')
-                in_file_block = True
-            elif in_file_block and line.startswith('==='):
-                lines.append('```\n')
-                lines.append(line)
-                in_file_block = False
-            else:
-                lines.append(line)
-        if in_file_block:
-            lines.append('```')
-        content = '\n'.join(lines)
+        content = format_as_markdown(context)
     else:
         content = context
 

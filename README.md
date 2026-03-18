@@ -91,6 +91,7 @@ python -m context_pack --path /path/to/repo
 python -m context_pack --output context.md
 python -m context_pack --output context.txt
 ```
+> `.md` output renders with tables and syntax-highlighted code blocks. View in VS Code (`Ctrl+Shift+V`), GitHub, or any markdown renderer.
 
 ### Set custom token budget
 ```bash
