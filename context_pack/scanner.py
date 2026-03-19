@@ -16,7 +16,7 @@ def scan_directory(path="."):
     if not os.path.isdir(path):
         raise ValueError(f"Path is not a directory: {path}")
 
-    ignore_folders = set(['venv', '__pycache__', '.git', 'node_modules', '.idea', '.vscode', 'dist', 'build', 'target', 'runtime', 'vendor', 'examples', 'docs', 'assets', 'static', 'migrations', 'fixtures', 'third_party', 'contrib', 'scripts', 'tools', 'ci', '.github', 'cmake', 'bin', 'obj', 'out', 'coverage', 'gen', 'generated', 'autoconf', 'autom4te.cache'])
+    ignore_folders = set(['venv', '__pycache__', '.git', 'node_modules', '.idea', '.vscode', 'dist', 'build', 'target', 'runtime', 'vendor', 'examples', 'docs', 'assets', 'static', 'migrations', 'fixtures', 'third_party', 'contrib', 'scripts', 'tools', 'ci', '.github', 'cmake', 'bin', 'obj', 'out', 'coverage', 'gen', 'generated', 'autoconf', 'autom4te.cache', 'compiled', 'bundle', 'bundles', '.next', '__sapper__'])
     ignore_patterns = set()  # file patterns like *.generated.c
 
     # load .contextignore if present in scanned path

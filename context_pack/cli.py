@@ -190,7 +190,7 @@ def scan(
 
     console.print(f"[green]Found {len(result['files'])} files[/green]\n")
     console.print(table)
-    console.print(result['context'])
+    console.print(result['context'], markup=False)
 
     # --- SAVE TO CACHE ---
     save_cache(path, result['context'])

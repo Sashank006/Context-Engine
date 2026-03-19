@@ -43,34 +43,125 @@ CONTENT_SIGNALS = {
 UTILITY_KEYWORDS = ['utils', 'helpers', 'constants', 'colors', 'types', 'enums']
 TEST_KEYWORDS = ['test', 'tests', 'spec', 'mock']
 
+# import patterns per language
+IMPORT_PATTERNS = {
+    '.py': [
+        r'from\s+([\w.]+)\s+import',
+        r'^import\s+([\w.]+)',
+    ],
+    '.js': [
+        r"require\(['\"](\.[^'\"]+)['\"]\)",
+        r"from\s+['\"](\.[^'\"]+)['\"]",
+        r"import\s+['\"](\.[^'\"]+)['\"]",
+    ],
+    '.ts': [
+        r"require\(['\"](\.[^'\"]+)['\"]\)",
+        r"from\s+['\"](\.[^'\"]+)['\"]",
+        r"import\s+['\"](\.[^'\"]+)['\"]",
+    ],
+    '.jsx': [
+        r"from\s+['\"](\.[^'\"]+)['\"]",
+    ],
+    '.tsx': [
+        r"from\s+['\"](\.[^'\"]+)['\"]",
+    ],
+    '.mjs': [
+        r"from\s+['\"](\.[^'\"]+)['\"]",
+        r"import\s+['\"](\.[^'\"]+)['\"]",
+    ],
+    '.c': [
+        r'#include\s+"([^"]+)"',
+    ],
+    '.cpp': [
+        r'#include\s+"([^"]+)"',
+    ],
+    '.cc': [
+        r'#include\s+"([^"]+)"',
+    ],
+    '.h': [
+        r'#include\s+"([^"]+)"',
+    ],
+    '.hpp': [
+        r'#include\s+"([^"]+)"',
+    ],
+    '.go': [
+        r'"([\w./]+)"',
+    ],
+    '.java': [
+        r'import\s+([\w.]+)',
+    ],
+    '.kt': [
+        r'import\s+([\w.]+)',
+    ],
+    '.swift': [
+        r'import\s+(\w+)',
+    ],
+    '.cs': [
+        r'using\s+([\w.]+)',
+    ],
+    '.rs': [
+        r'use\s+([\w:]+)',
+        r'mod\s+(\w+)',
+    ],
+    '.rb': [
+        r"require\s+['\"](\.[^'\"]+)['\"]",
+        r"require_relative\s+['\"]([^'\"]+)['\"]",
+    ],
+}
+
+
+def extract_imports(line, patterns):
+    """Extract imported module/file names from a line using given patterns."""
+    imports = []
+    for pattern in patterns:
+        matches = re.findall(pattern, line)
+        imports.extend(matches)
+    return imports
+
 
 def build_import_map(file_paths):
     import_counts = {fp: 0 for fp in file_paths}
     test_only = {fp: True for fp in file_paths}
 
+    # build basename lookup for fast matching
+    basename_map = {}
     for fp in file_paths:
+        base = os.path.splitext(os.path.basename(fp))[0].lower()
+        if base not in basename_map:
+            basename_map[base] = []
+        basename_map[base].append(fp)
+
+    for fp in file_paths:
+        ext = os.path.splitext(fp)[1].lower()
+        patterns = IMPORT_PATTERNS.get(ext, [])
+        if not patterns:
+            continue
+
         is_test_file = any(kw in fp.lower() for kw in TEST_KEYWORDS)
+
         try:
             with open(fp, encoding='utf-8') as f:
-                lines = f.readlines()[:20]
+                lines = f.readlines()[:30]
             for line in lines:
                 line = line.strip()
-                if not line.startswith('import') and not line.startswith('from'):
-                    continue
-                match = re.search(r'(?:from|import)\s+([\w.]+)', line)
-                if not match:
-                    continue
-                module = match.group(1).replace('.', os.sep)
-                for target_fp in file_paths:
-                    normalized_target = os.path.splitext(target_fp)[0].replace('.\\', '').replace('./', '').replace(os.sep, '.')
-                    if module.replace(os.sep, '.') == normalized_target:
-                        filename = os.path.basename(target_fp).lower()
-                        if any(kw in filename for kw in UTILITY_KEYWORDS):
-                            import_counts[target_fp] = min(import_counts[target_fp] + 1, 2)
-                        else:
-                            import_counts[target_fp] += 1
-                        if not is_test_file:
-                            test_only[target_fp] = False
+                imports = extract_imports(line, patterns)
+                for imp in imports:
+                    # normalize to basename for matching
+                    imp_base = os.path.splitext(os.path.basename(imp))[0].lower()
+                    imp_base = imp_base.lstrip('./')
+                    if not imp_base:
+                        continue
+                    if imp_base in basename_map:
+                        for target_fp in basename_map[imp_base]:
+                            if target_fp == fp:
+                                continue  # skip self imports
+                            filename = os.path.basename(target_fp).lower()
+                            if any(kw in filename for kw in UTILITY_KEYWORDS):
+                                import_counts[target_fp] = min(import_counts[target_fp] + 1, 2)
+                            else:
+                                import_counts[target_fp] += 1
+                            if not is_test_file:
+                                test_only[target_fp] = False
         except (OSError, UnicodeDecodeError):
             continue
 

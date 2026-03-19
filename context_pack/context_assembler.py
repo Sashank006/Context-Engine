@@ -69,17 +69,26 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     return '\n'.join(lines)
 
 
+MINIFIED_INDICATORS = ['compiled', 'dist', 'bundle', 'min.js', 'min.ts']
+
 def build_file_snippet(filepath: str, char_budget: int) -> str:
     """
     Returns a clean snippet for a single file within char_budget.
     Converts char budget to lines, with a minimum floor of MIN_LINES_PER_FILE.
-    Returns None if file can't be read.
+    Returns None if file can't be read or is minified/compiled.
     """
-    # convert char budget to lines, respect minimum floor
-    lines_allowed = max(MIN_LINES_PER_FILE, char_budget // 40)  # ~40 chars per line
+    # skip compiled/minified files
+    fp_lower = filepath.replace("\\", "/").lower()
+    if any(indicator in fp_lower for indicator in MINIFIED_INDICATORS):
+        return None
+
+    lines_allowed = max(MIN_LINES_PER_FILE, char_budget // 40)
     try:
         with open(filepath, encoding='utf-8') as f:
             lines = f.readlines()[:lines_allowed]
+        # skip if first line is suspiciously long (minified)
+        if lines and len(lines[0]) > 500:
+            return None
         snippet = ''.join(lines).strip()
         return f"\n--- {filepath} ---\n{snippet}"
     except (OSError, UnicodeDecodeError):
@@ -104,6 +113,9 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
 
     # --- PRIORITY 1: Metadata ---
     metadata = build_metadata_block(analysis, metadata_budget)
+    # hard enforce metadata budget — truncate if it overflows
+    if len(metadata) > metadata_budget:
+        metadata = metadata[:metadata_budget] + '\n... (metadata truncated)'
     sections.append(metadata)
 
     # --- PRIORITY 2: File snippets ---
