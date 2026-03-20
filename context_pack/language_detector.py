@@ -80,10 +80,27 @@ def detect_languages(file_paths):
     return language_counts
 
 
+# languages that don't count as "real" secondary languages for mixed detection
+NON_PROGRAMMING_LANGUAGES = {'HTML', 'CSS', 'Shell', 'VimScript'}
+
 def get_primary_language(counts):
     if not counts:
         return {"primary": "Unknown", "mixed": False, "all": {}}
     total = sum(counts.values())
     primary = max(counts, key=counts.get)
-    mixed = any(count / total > 0.2 for lang, count in counts.items() if lang != primary)
-    return {"primary": primary, "mixed": mixed, "all": counts}
+
+    # only count real programming languages for mixed detection
+    programming_counts = {
+        lang: count for lang, count in counts.items()
+        if lang not in NON_PROGRAMMING_LANGUAGES
+    }
+    programming_total = sum(programming_counts.values())
+
+    # find all secondary languages above 20% threshold
+    secondary = {
+        lang: count for lang, count in programming_counts.items()
+        if lang != primary and programming_total > 0 and count / programming_total > 0.2
+    }
+
+    mixed = len(secondary) > 0
+    return {"primary": primary, "mixed": mixed, "secondary": secondary, "all": counts}

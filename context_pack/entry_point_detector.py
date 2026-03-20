@@ -50,6 +50,15 @@ def detect_entry_point(file_paths, primary_language):
             continue
         if os.path.getsize(fp) > 2_000_000:
             continue
+        # skip files deeper than 3 levels for content signal matching
+        # normalize to forward slashes and count separators in relative portion
+        normalized = fp.replace('\\', '/')
+        # strip drive letter if present (Windows)
+        if ':/' in normalized:
+            normalized = normalized.split(':/', 1)[1]
+        depth = normalized.count('/')
+        if depth > 4:
+            continue
         try:
             with open(fp, encoding='utf-8') as f:
                 content = f.read()

@@ -15,6 +15,7 @@ def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False):
     lang_result = get_primary_language(detect_languages(files))
     d['language'] = lang_result['primary']
     d['mixed'] = lang_result['mixed']
+    d['secondary'] = lang_result.get('secondary', {})
     d['framework'] = detect_framework(files, dep_files, lang_result['primary'])
     d['dependencies'] = parse_dependencies(dep_files, lang_result['primary'])
     d['entry_point'] = detect_entry_point(files, lang_result['primary'])

@@ -51,8 +51,9 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     lines = []
     lines.append("=== PROJECT SUMMARY ===")
     lines.append(f"Language: {analysis['language']}")
-    if analysis.get('mixed'):
-        lines.append("Mixed codebase: Yes")
+    secondary = analysis.get('secondary', {})
+    if secondary:
+        lines.append(f"Secondary Languages: {', '.join(secondary.keys())}")
     lines.append(f"Framework: {analysis['framework']}")
     lines.append(f"Architectural Pattern: {', '.join(analysis['patterns'])}")
     lines.append(f"Entry Point: {analysis['entry_point']}")
