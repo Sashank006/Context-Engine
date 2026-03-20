@@ -29,8 +29,18 @@ def _estimate_tokens(history: list) -> int:
         import tiktoken
         enc = tiktoken.get_encoding('cl100k_base')
         return len(enc.encode(total_text))
-    except ImportError:
+    except (ImportError, Exception):
         return len(total_text) // CHARS_PER_TOKEN
+
+
+def _estimate_message_tokens(text: str) -> int:
+    """Estimate tokens for a single message using tiktoken."""
+    try:
+        import tiktoken
+        enc = tiktoken.get_encoding('cl100k_base')
+        return len(enc.encode(text))
+    except (ImportError, Exception):
+        return len(text) // CHARS_PER_TOKEN
 
 
 def _compress_history(history: list, provider: str, api_key: str) -> list:
@@ -121,7 +131,7 @@ def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: lis
         relevant_files = _select_relevant_files(user_input, file_paths, provider, api_key)
 
         # --- RAG STEP 2: load full content of selected files ---
-        file_content = _load_full_files(relevant_files)
+        file_content = _load_full_files(relevant_files, question=user_input)
 
         # --- RAG STEP 3: build enriched message with full file content ---
         enriched_message = user_input
@@ -164,14 +174,54 @@ def _select_relevant_files(question: str, file_paths: list, provider: str, api_k
         return file_paths[:3]
 
 
-def _load_full_files(file_paths: list) -> str:
-    """Read full content of selected files and format as a string block."""
+def _extract_smart_snippet(lines: list, question: str, max_lines: int = 100) -> str:
+    """
+    Extract the most relevant lines from a file using 3-part strategy:
+    1. First 30 lines (imports, structure)
+    2. Last 20 lines (exports, main logic)
+    3. Lines containing question keywords (up to remaining budget)
+    """
+    keywords = [w.lower() for w in question.split() if len(w) > 3]
+    
+    first = lines[:30]
+    last = lines[-20:] if len(lines) > 30 else []
+    
+    # find keyword-relevant lines not already in first/last
+    first_indices = set(range(min(30, len(lines))))
+    last_indices = set(range(max(0, len(lines) - 20), len(lines)))
+    already_included = first_indices | last_indices
+    
+    keyword_lines = []
+    remaining_budget = max_lines - len(first) - len(last)
+    
+    for i, line in enumerate(lines):
+        if i in already_included:
+            continue
+        if any(kw in line.lower() for kw in keywords):
+            keyword_lines.append(line)
+            if len(keyword_lines) >= remaining_budget:
+                break
+    
+    result = list(first)
+    if keyword_lines:
+        result.append('... [relevant lines] ...\n')
+        result.extend(keyword_lines)
+    if last and len(lines) > 30:
+        result.append('... [end of file] ...\n')
+        result.extend(last)
+    
+    return ''.join(result)
+
+
+def _load_full_files(file_paths: list, question: str = "") -> str:
+    """Read files and extract smart snippets based on the user question."""
     blocks = []
     for fp in file_paths:
         try:
             with open(fp, encoding='utf-8') as f:
-                content = f.read()
-            blocks.append(f"--- {fp} ---\n{content}")
+                lines = f.readlines()
+            snippet = _extract_smart_snippet(lines, question)
+            blocks.append(f"--- {fp} ---\n{snippet}")
         except (OSError, UnicodeDecodeError):
             blocks.append(f"--- {fp} ---\n[Could not read file]")
     return "\n\n".join(blocks)
