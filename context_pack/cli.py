@@ -212,7 +212,7 @@ def scan(
             if tmp_dir:
                 shutil.rmtree(tmp_dir, ignore_errors=True)
             return
-        start_deep_dive(result["context"], llm, api_key, result["ranked_files"])
+        start_deep_dive(result["context"], llm, api_key, result["ranked_files"], result.get("file_descriptions", {}))
 
     # --- CLEANUP TEMP DIR ---
     if tmp_dir:

@@ -131,10 +131,17 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
     files_to_show = ranked[:important_count]
     per_file_budget = remaining_snippet_budget // max(len(files_to_show), 1)
 
+    file_descriptions = analysis.get('file_descriptions', {})
+
     for fp, _ in files_to_show:
         snippet = build_file_snippet(fp, per_file_budget)
         if snippet is None:
             continue
+        # add description above snippet
+        description = file_descriptions.get(fp, '')
+        if description:
+            desc_line = f"\n> {description}"
+            snippet = desc_line + snippet
         if len(snippet) > remaining_snippet_budget:
             sections.append("\n[Token budget reached — use Deep Dive for remaining files]")
             break
