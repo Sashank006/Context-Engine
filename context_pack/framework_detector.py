@@ -29,6 +29,7 @@ LANGUAGE_DEP_FILES = {
 FRAMEWORK_SIGNATURES = {
     # JavaScript/TypeScript — specific before generic
     'Next.js': {'dependencies': ['next'], 'files': ['next.config.js', 'next.config.mjs', 'next.config.ts']},
+    'Ink': {'dependencies': ['ink'], 'files': []},  # CLI framework using React
     'NestJS': {'dependencies': ['@nestjs/core'], 'files': []},
     'Angular': {'dependencies': ['@angular/core'], 'files': ['angular.json']},
     'Svelte': {'dependencies': ['svelte'], 'files': ['svelte.config.js']},
@@ -56,8 +57,15 @@ def detect_framework(file_paths, dep_files, primary_language):
     for dep_file in dep_files:
         if any(target in dep_file for target in targets):
             try:
-                with open(dep_file, encoding='utf-8') as f:
-                    dep_content += f.read().lower()
+                if 'package.json' in dep_file:
+                    # only use runtime dependencies for framework detection
+                    with open(dep_file, encoding='utf-8') as f:
+                        data = json.load(f)
+                    runtime_deps = list(data.get('dependencies', {}).keys())
+                    dep_content += ' '.join(runtime_deps).lower()
+                else:
+                    with open(dep_file, encoding='utf-8') as f:
+                        dep_content += f.read().lower()
             except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 continue
 

@@ -59,13 +59,23 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     lines.append(f"Entry Point: {analysis['entry_point']}")
     lines.append(f"Total Files: {len(analysis['files'])}")
 
-    deps = [d['name'] for d in analysis.get('dependencies', [])]
-    if deps:
-        dep_line = f"Dependencies: {', '.join(deps)}"
+    all_deps = analysis.get('dependencies', [])
+    runtime_deps = [d['name'] for d in all_deps if not d.get('dev', False)]
+    dev_deps = [d['name'] for d in all_deps if d.get('dev', False)]
+
+    if runtime_deps:
+        dep_line = f"Dependencies: {', '.join(runtime_deps)}"
         base = '\n'.join(lines)
         if len(base) + len(dep_line) > metadata_char_budget:
-            dep_line = f"Dependencies: {', '.join(deps[:10])} ... (truncated)"
+            dep_line = f"Dependencies: {', '.join(runtime_deps[:10])} ... (truncated)"
         lines.append(dep_line)
+
+    if dev_deps:
+        dev_line = f"Dev Dependencies: {', '.join(dev_deps)}"
+        base = '\n'.join(lines)
+        if len(base) + len(dev_line) > metadata_char_budget:
+            dev_line = f"Dev Dependencies: {', '.join(dev_deps[:5])} ... (truncated)"
+        lines.append(dev_line)
 
     return '\n'.join(lines)
 
@@ -128,7 +138,7 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
         sections.append("\n[No files available to display]")
 
     # iterate top 25% of ranked files, add as many as budget allows
-    files_to_show = ranked[:important_count]
+    files_to_show = ranked[:min(important_count, 25)]
     per_file_budget = remaining_snippet_budget // max(len(files_to_show), 1)
 
     file_descriptions = analysis.get('file_descriptions', {})
