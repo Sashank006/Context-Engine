@@ -45,6 +45,8 @@ def detect_entry_point(file_paths, primary_language):
     signals = CONTENT_SIGNALS.get(primary_language, [])
     # skip header files — they declare but never define entry points
     skip_extensions = {'.h', '.hpp', '.hh'}
+    # sort by depth so root-level files are checked first
+    file_paths = sorted(file_paths, key=lambda fp: fp.replace('\\', '/').count('/'))
     for fp in file_paths:
         if os.path.splitext(fp)[1] in skip_extensions:
             continue

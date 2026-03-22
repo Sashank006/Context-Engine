@@ -17,7 +17,10 @@ IGNORE_FOLDERS = {
     '__snapshots__', 'e2e', 'integration', 'unit', 'benchmark', 'benchmarks',
     'storybook', '.storybook', 'stories', 'story',
     'evals', 'eval', 'bench', 'playground', 'demo', 'demos', 'sample', 'samples',
+    'devtools', 'dev-tools', 'vscode-ide-companion', 'ide-companion',
     'benchmark-apps', 'testing', 'codemod', 'transforms', 'codemods',
+    'devtools', 'dev-tools', 'vscode-ide-companion', 'ide-companion',
+    'browser-extension', 'chrome-extension',
     'crates', 'templates', 'template', 'proto', 'protos', 'schema', 'schemas',
     'types', 'typings', 'type-stubs', 'stubs'
 }
@@ -44,6 +47,9 @@ SKIP_PATTERNS = {
 IGNORE_FILES = {'context.md', 'context.txt'}
 
 
+# word-boundary test keywords for filename filtering
+FILENAME_TEST_KEYWORDS = ['test', 'mock', 'fixture', 'stub', 'spec']
+
 def _should_skip_file(filename: str) -> bool:
     """Check if a file should be skipped based on extension or pattern."""
     if filename in IGNORE_FILES:
@@ -55,6 +61,14 @@ def _should_skip_file(filename: str) -> bool:
     # check patterns like *.min.js
     for pattern in SKIP_PATTERNS:
         if fnmatch.fnmatch(filename, pattern):
+            return True
+    # check word-boundary test keywords in filename
+    # only match if keyword appears at start or after a separator (-, _, .)
+    name_lower = filename.lower()
+    for kw in FILENAME_TEST_KEYWORDS:
+        if name_lower.startswith(kw):
+            return True
+        if f'-{kw}' in name_lower or f'_{kw}' in name_lower or f'.{kw}' in name_lower:
             return True
     return False
 
