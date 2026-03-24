@@ -193,12 +193,6 @@ def scan(
         return
 
     cached = get_cached(path)
-    if cached and not deep_dive:
-        console.print(f"[green]Using cached result (repo unchanged). Use --clear-cache to force re-analysis.[/green]")
-        console.print(cached)
-        if output:
-            save_output(cached, output)
-        return
 
     # --- DIFF MODE ---
     if show_diff or diff_target:
@@ -214,41 +208,7 @@ def scan(
             save_output(output_text, output)
         return
 
-    console.print(f"[blue]Scanning: {path}[/blue]")
-    # validate budget
-    if budget <= 0:
-        console.print("[red]Invalid budget: must be a positive number. Using default of 2000.[/red]")
-        budget = 2000
-    elif budget < 500:
-        console.print(f"[yellow]Warning: budget of {budget} tokens is very low and may produce incomplete output.[/yellow]")
-    if budget != 2000:
-        console.print(f"[yellow]Token budget set to: {budget}[/yellow]")
-    if llm and not deep_dive:
-        console.print(f"[yellow]LLM validation enabled: {llm}[/yellow]")
-
-    result = analyze(path, max_tokens=budget, llm_provider=llm, skip_validation=deep_dive)
-
-    table = Table(title="Code Files")
-    table.add_column("File", style="cyan")
-
-    for f in result['files'][:20]:
-        table.add_row(f)
-
-    if len(result['files']) > 20:
-        table.add_row(f"... and {len(result['files']) - 20} more")
-
-    console.print(f"[green]Found {len(result['files'])} files[/green]\n")
-    console.print(table)
-    console.print(result['context'], markup=False)
-
-    # --- SAVE TO CACHE ---
-    save_cache(path, result['context'])
-
-    # --- SAVE OUTPUT ---
-    if output:
-        save_output(result['context'], output)
-
-    # --- DEEP DIVE MODE ---
+    # --- DEEP DIVE MODE (use cache if available, skip all output) ---
     if deep_dive:
         if not llm:
             console.print("[red]Deep Dive requires --llm. Example: --llm gemini[/red]")
@@ -261,7 +221,60 @@ def scan(
             if tmp_dir:
                 shutil.rmtree(tmp_dir, ignore_errors=True)
             return
+        if not cached:
+            # only scan if no cache
+            result = analyze(path, max_tokens=budget, llm_provider=None, skip_validation=True)
+            save_cache(path, result['context'])
+        else:
+            result = analyze(path, max_tokens=budget, llm_provider=None, skip_validation=True)
         start_deep_dive(result["context"], llm, api_key, result["ranked_files"], result.get("file_descriptions", {}))
+        if tmp_dir:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+        return
+
+    # --- NORMAL SCAN MODE ---
+    if cached:
+        console.print(f"[green]Using cached result (repo unchanged). Use --clear-cache to force re-analysis.[/green]")
+        console.print(cached)
+        if output:
+            save_output(cached, output)
+        return
+
+    console.print(f"[blue]Scanning: {path}[/blue]")
+    # validate budget
+    if budget <= 0:
+        console.print("[red]Invalid budget: must be a positive number. Using default of 2000.[/red]")
+        budget = 2000
+    elif budget < 500:
+        console.print(f"[yellow]Warning: budget of {budget} tokens is very low and may produce incomplete output.[/yellow]")
+    if budget != 2000:
+        console.print(f"[yellow]Token budget set to: {budget}[/yellow]")
+    if llm:
+        console.print(f"[yellow]LLM validation enabled: {llm}[/yellow]")
+
+    result = analyze(path, max_tokens=budget, llm_provider=llm, skip_validation=False)
+
+    table = Table(title="Code Files")
+    table.add_column("File", style="cyan")
+
+    for f in result['files'][:20]:
+        table.add_row(f)
+
+    if len(result['files']) > 20:
+        table.add_row(f"... and {len(result['files']) - 20} more")
+
+    console.print(f"[green]Found {len(result['files'])} files[/green]\n")
+    console.print(table)
+
+    if not output:
+        console.print(result['context'], markup=False)
+
+    # --- SAVE TO CACHE ---
+    save_cache(path, result['context'])
+
+    # --- SAVE OUTPUT ---
+    if output:
+        save_output(result['context'], output)
 
     # --- CLEANUP TEMP DIR ---
     if tmp_dir:
