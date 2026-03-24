@@ -193,7 +193,7 @@ def scan(
         return
 
     cached = get_cached(path)
-    if cached:
+    if cached and not deep_dive:
         console.print(f"[green]Using cached result (repo unchanged). Use --clear-cache to force re-analysis.[/green]")
         console.print(cached)
         if output:

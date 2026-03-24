@@ -93,19 +93,11 @@ def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: lis
     Compresses history when it exceeds HISTORY_TOKEN_LIMIT.
     """
     print("\n=== Deep Dive Mode ===")
-    print("Ask anything about your codebase. Type 'exit' to quit.\n")
+    print("Ask anything about the codebase. Type 'exit' to quit.\n")
 
+    # store context as system context, not as a conversation turn
     conversation_history = []
-
-    # Prime the conversation with our context summary
-    initial_message = f"Here is a structured summary of the codebase I want to ask about:\n\n{context}"
-    conversation_history.append({"role": "user", "content": initial_message})
-
-    ack = _send_message(conversation_history, provider, api_key)
-    if ack is None:
-        print("[Error] Could not connect to LLM. Exiting Deep Dive.")
-        return
-    conversation_history.append({"role": "assistant", "content": ack})
+    system_context = f"Here is a structured summary of the codebase the user will ask about:\n\n{context}"
 
     file_paths = [fp for fp, _ in ranked_files]
 
@@ -146,6 +138,10 @@ def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: lis
                 f"Here are the full contents of the relevant files:\n\n{file_content}"
             )
 
+        # prepend system context to first message only
+        if len(conversation_history) == 0:
+            enriched_message = system_context + "\n\n" + enriched_message
+
         conversation_history.append({"role": "user", "content": enriched_message})
 
         response = _send_message(conversation_history, provider, api_key)
@@ -160,9 +156,11 @@ def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: lis
 
 def _select_relevant_files(question: str, file_paths: list, provider: str, api_key: str) -> list:
     """Ask LLM which files are relevant to the user's question. Falls back to top 3 files on failure."""
+    # cap to top 50 files to avoid massive prompts
+    capped_paths = file_paths[:50]
     prompt = (
         FILE_SELECTOR_PROMPT.format(max_files=MAX_FILES_PER_QUESTION) +
-        f"\n\nAvailable files:\n" + "\n".join(file_paths) +
+        f"\n\nAvailable files:\n" + "\n".join(capped_paths) +
         f"\n\nUser question: {question}"
     )
     history = [{"role": "user", "content": prompt}]
@@ -173,10 +171,10 @@ def _select_relevant_files(question: str, file_paths: list, provider: str, api_k
             return file_paths[:3]
         clean = response.strip().replace('```json', '').replace('```', '').strip()
         selected = json.loads(clean)
-        valid = [fp for fp in selected if fp in file_paths]
-        return valid[:MAX_FILES_PER_QUESTION] if valid else file_paths[:3]
+        valid = [fp for fp in selected if fp in capped_paths]
+        return valid[:MAX_FILES_PER_QUESTION] if valid else capped_paths[:3]
     except Exception:
-        return file_paths[:3]
+        return capped_paths[:3]
 
 
 def _extract_smart_snippet(lines: list, question: str, max_lines: int = 100) -> str:
