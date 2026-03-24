@@ -13,6 +13,20 @@ from context_pack.file_describer import generate_descriptions
 def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False):
     d = {}
     files, dep_files = scan_directory(path)
+
+    # handle empty repos
+    if not files:
+        print("[Warning] No code files found in this directory.")
+        print("This may be a docs-only repo, an empty directory, or all files were filtered out.")
+        print("Tip: Check your .contextignore or try a different path.")
+        return {
+            'language': 'Unknown', 'mixed': False, 'secondary': {},
+            'framework': 'Unknown', 'dependencies': [], 'entry_point': None,
+            'files': [], 'dep_files': dep_files, 'ranked_files': [],
+            'patterns': [], 'file_descriptions': {},
+            'context': '=== PROJECT SUMMARY ===\nNo code files found.\n'
+        }
+
     lang_result = get_primary_language(detect_languages(files))
     d['language'] = lang_result['primary']
     d['mixed'] = lang_result['mixed']

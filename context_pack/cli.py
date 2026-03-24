@@ -215,6 +215,12 @@ def scan(
         return
 
     console.print(f"[blue]Scanning: {path}[/blue]")
+    # validate budget
+    if budget <= 0:
+        console.print("[red]Invalid budget: must be a positive number. Using default of 2000.[/red]")
+        budget = 2000
+    elif budget < 500:
+        console.print(f"[yellow]Warning: budget of {budget} tokens is very low and may produce incomplete output.[/yellow]")
     if budget != 2000:
         console.print(f"[yellow]Token budget set to: {budget}[/yellow]")
     if llm and not deep_dive:
