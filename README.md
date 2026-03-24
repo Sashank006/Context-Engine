@@ -71,9 +71,9 @@ Dev Dependencies: eslint, vitest, typescript-eslint, esbuild ...
 
 ## Installation
 
-### From PyPI (recommended)
+### Quick install
 ```bash
-pip install context-pack
+pip install git+https://github.com/Sashank006/Context-Engine.git
 ```
 
 ### From source
