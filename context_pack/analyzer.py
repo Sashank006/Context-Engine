@@ -24,7 +24,7 @@ def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False):
             'framework': 'Unknown', 'dependencies': [], 'entry_point': None,
             'files': [], 'dep_files': dep_files, 'ranked_files': [],
             'patterns': [], 'file_descriptions': {},
-            'context': '=== PROJECT SUMMARY ===\nNo code files found.\n'
+            'context': '=== PROJECT SUMMARY === \nNo code files found.\n'
         }
 
     lang_result = get_primary_language(detect_languages(files))
@@ -49,7 +49,9 @@ def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False):
 
     # --- FILE DESCRIPTIONS ---
     api_key = get_api_key(llm_provider) if llm_provider else None
-    d['file_descriptions'] = generate_descriptions(d['ranked_files'], llm_provider, api_key)
+    # only generate descriptions for top 25 files we actually display
+    top_files = d['ranked_files'][:25]
+    d['file_descriptions'] = generate_descriptions(top_files, llm_provider, api_key)
 
     d['context'] = assemble_context(d, max_tokens=max_tokens)
     return d

@@ -136,12 +136,12 @@ def _build_description_prompt(ranked_files: list) -> str:
         "Example: {\"src/server/base-server.ts\": \"Core HTTP server abstraction handling request/response lifecycle.\"}\n\n"
         "Files to describe:\n"
     )
-    for fp, _ in ranked_files:
+    for fp, _ in ranked_files[:25]:  # hard cap at 25 files
         prompt += f"- {fp}\n"
         try:
             with open(fp, encoding='utf-8') as f:
-                first_lines = ''.join(f.readlines()[:10])
-            prompt += f"  First lines:\n  {first_lines[:300]}\n\n"
+                first_lines = ''.join(f.readlines()[:5])  # only 5 lines per file
+            prompt += f"  First lines:\n  {first_lines[:150]}\n\n"  # 150 chars max
         except (OSError, UnicodeDecodeError):
             prompt += "  [Could not read file]\n\n"
     return prompt
