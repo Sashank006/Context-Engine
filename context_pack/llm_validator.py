@@ -35,7 +35,15 @@ def validate_ranking(ranked_files: list, provider: str, api_key: str) -> list:
             print(f"[Warning] Unsupported provider: {provider}. Skipping LLM validation.")
             return ranked_files
     except Exception as e:
-        print(f"[Warning] LLM validation failed: {e}. Falling back to static ranking.")
+        err = str(e).lower()
+        if '429' in err or 'rate limit' in err or 'quota' in err:
+            print("[Warning] LLM rate limit hit. Falling back to static ranking.")
+        elif 'network' in err or 'connection' in err or 'timeout' in err or 'unreachable' in err:
+            print("[Warning] No internet connection or API unreachable. Falling back to static ranking.")
+        elif 'invalid api key' in err or 'unauthorized' in err or '401' in err:
+            print("[Warning] Invalid API key. Falling back to static ranking.")
+        else:
+            print(f"[Warning] LLM validation failed: {e}. Falling back to static ranking.")
         return ranked_files
 
 

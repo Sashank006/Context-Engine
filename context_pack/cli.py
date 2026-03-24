@@ -18,18 +18,42 @@ console = Console()
 
 def clone_repo(url: str) -> str | None:
     """Clone a GitHub repo to a temp directory. Returns the temp path or None on failure."""
+
+    # validate URL format
+    if not url.startswith(('https://', 'http://', 'git@')):
+        console.print(f"[red]Invalid URL: {url}. Must start with https://, http://, or git@[/red]")
+        return None
+
+    # check git is installed
+    try:
+        subprocess.run(['git', '--version'], check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        console.print("[red]Git is not installed or not in PATH. Please install git first.[/red]")
+        return None
+
     tmp_dir = tempfile.mkdtemp(prefix='contextpack_')
     console.print(f"[blue]Cloning {url}...[/blue]")
     try:
         subprocess.run(
             ['git', 'clone', '--depth=1', url, tmp_dir],
             check=True,
-            capture_output=True
+            capture_output=True,
+            timeout=120
         )
         console.print(f"[green]Cloned successfully.[/green]")
         return tmp_dir
+    except subprocess.TimeoutExpired:
+        console.print("[red]Clone timed out after 2 minutes. The repo may be too large or your connection is slow.[/red]")
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return None
     except subprocess.CalledProcessError as e:
-        console.print(f"[red]Failed to clone repo: {e.stderr.decode().strip()}[/red]")
+        error_msg = e.stderr.decode().strip()
+        if 'not found' in error_msg.lower() or '404' in error_msg:
+            console.print("[red]Repository not found. Check the URL or make sure it is a public repo.[/red]")
+        elif 'authentication' in error_msg.lower() or '403' in error_msg:
+            console.print("[red]Authentication failed. ContextPack only supports public repositories.[/red]")
+        else:
+            console.print(f"[red]Failed to clone repo: {error_msg}[/red]")
         shutil.rmtree(tmp_dir, ignore_errors=True)
         return None
 
@@ -107,6 +131,20 @@ def save_output(context: str, output_path: str):
     """Save context to .md or .txt file."""
     ext = os.path.splitext(output_path)[1].lower()
 
+    # validate extension
+    if ext not in ('.md', '.txt', ''):
+        console.print(f"[red]Unsupported output format: {ext}. Use .md or .txt[/red]")
+        return
+
+    # create parent directory if it doesn't exist
+    parent_dir = os.path.dirname(os.path.abspath(output_path))
+    if not os.path.exists(parent_dir):
+        try:
+            os.makedirs(parent_dir, exist_ok=True)
+        except OSError as e:
+            console.print(f"[red]Could not create output directory: {e}[/red]")
+            return
+
     if ext == '.md':
         content = format_as_markdown(context)
     else:
@@ -116,8 +154,13 @@ def save_output(context: str, output_path: str):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(content)
         console.print(f"[green]Context saved to: {output_path}[/green]")
+    except PermissionError:
+        console.print(f"[red]Permission denied: cannot write to {output_path}[/red]")
     except OSError as e:
-        console.print(f"[red]Could not save file: {e}[/red]")
+        if e.errno == 28:  # ENOSPC - no space left on device
+            console.print("[red]Disk full: not enough space to save the file.[/red]")
+        else:
+            console.print(f"[red]Could not save file: {e}[/red]")
 
 
 @app.command()

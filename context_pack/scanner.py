@@ -89,7 +89,7 @@ def _pass1_collect_approved_folders(path: str, ignore_folders: set, ignore_subst
             return True
         return False
 
-    for root, dirs, files in os.walk(path):
+    for root, dirs, files in os.walk(path, followlinks=False):
         # prune ignored folders in-place so os.walk skips their subtrees
         dirs[:] = [d for d in dirs if not should_ignore(d)]
 
@@ -106,6 +106,38 @@ def _pass1_collect_approved_folders(path: str, ignore_folders: set, ignore_subst
     return approved_folders
 
 
+def _is_drive_root(path: str) -> bool:
+    """Check if path is a drive or filesystem root."""
+    normalized = os.path.abspath(path).replace('\\', '/')
+    # Windows drive roots: C:/ D:/ etc
+    if len(normalized) <= 3 and normalized[1:] in (':/', ':\\'):
+        return True
+    # Unix root
+    if normalized == '/':
+        return True
+    return False
+
+
+def _estimate_directory_size(path: str) -> int:
+    """Quick estimate of total files in directory (top 2 levels only)."""
+    count = 0
+    try:
+        for entry in os.scandir(path):
+            if entry.is_file():
+                count += 1
+            elif entry.is_dir():
+                try:
+                    for _ in os.scandir(entry.path):
+                        count += 1
+                        if count > 50000:
+                            return count
+                except (OSError, PermissionError):
+                    pass
+    except (OSError, PermissionError):
+        pass
+    return count
+
+
 def scan_directory(path="."):
     """Walk directory using two-pass approach to find code files efficiently."""
 
@@ -114,6 +146,22 @@ def scan_directory(path="."):
         raise ValueError(f"Path does not exist: {path}")
     if not os.path.isdir(path):
         raise ValueError(f"Path is not a directory: {path}")
+
+    # block drive/filesystem roots
+    if _is_drive_root(path):
+        raise ValueError(
+            f"[Error] Scanning a drive root ({path}) is not supported — "
+            f"this would scan your entire system. Please specify a project directory."
+        )
+
+    # warn if directory seems very large
+    estimated = _estimate_directory_size(path)
+    if estimated > 20000:
+        print(f"\n[Warning] This directory appears to contain {estimated}+ files.")
+        print("Scanning may be slow and results may be noisy.")
+        confirm = input("Continue? (y/n): ").strip().lower()
+        if confirm != 'y':
+            raise ValueError("Scan cancelled by user.")
 
     # merge hardcoded ignore list with .contextignore
     ignore_folders = set(IGNORE_FOLDERS)

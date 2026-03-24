@@ -86,7 +86,7 @@ def _compress_history(history: list, provider: str, api_key: str) -> list:
     return initial + [compressed_msg, compressed_ack] + recent
 
 
-def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: list):
+def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: list, file_descriptions: dict = {}):
     """
     Starts an interactive RAG conversation loop about the codebase.
     For each question: selects relevant files -> loads full content -> sends to LLM.
@@ -118,10 +118,15 @@ def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: lis
             break
 
         if not user_input:
+            print("Please enter a question.")
             continue
-        if user_input.lower() in ('exit', 'quit', 'q'):
+        if user_input.lower() in ('exit', 'quit', 'q', 'bye', 'bye!'):
             print("Exiting Deep Dive.")
             break
+        # cap question length to avoid burning tokens
+        if len(user_input) > 2000:
+            print("[Warning] Question too long — truncating to 2000 characters.")
+            user_input = user_input[:2000]
 
         # --- MEMORY: compress if history is getting too large ---
         if _estimate_tokens(conversation_history) > HISTORY_TOKEN_LIMIT:
@@ -131,7 +136,7 @@ def start_deep_dive(context: str, provider: str, api_key: str, ranked_files: lis
         relevant_files = _select_relevant_files(user_input, file_paths, provider, api_key)
 
         # --- RAG STEP 2: load full content of selected files ---
-        file_content = _load_full_files(relevant_files, question=user_input)
+        file_content = _load_full_files(relevant_files, question=user_input, file_descriptions=file_descriptions)
 
         # --- RAG STEP 3: build enriched message with full file content ---
         enriched_message = user_input
@@ -213,17 +218,21 @@ def _extract_smart_snippet(lines: list, question: str, max_lines: int = 100) -> 
     return ''.join(result)
 
 
-def _load_full_files(file_paths: list, question: str = "") -> str:
+def _load_full_files(file_paths: list, question: str = "", file_descriptions: dict = {}) -> str:
     """Read files and extract smart snippets based on the user question."""
     blocks = []
     for fp in file_paths:
+        description = file_descriptions.get(fp, '')
+        header = f"--- {fp} ---"
+        if description:
+            header += f"\n> {description}"
         try:
             with open(fp, encoding='utf-8') as f:
                 lines = f.readlines()
             snippet = _extract_smart_snippet(lines, question)
-            blocks.append(f"--- {fp} ---\n{snippet}")
+            blocks.append(f"{header}\n{snippet}")
         except (OSError, UnicodeDecodeError):
-            blocks.append(f"--- {fp} ---\n[Could not read file]")
+            blocks.append(f"{header}\n[Could not read file]")
     return "\n\n".join(blocks)
 
 

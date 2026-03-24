@@ -9,6 +9,22 @@ def get_diff(path: str, target: str = None) -> dict | None:
     Returns dict with changed files and diff summary, or None on failure.
     """
     try:
+        # check git is installed
+        try:
+            subprocess.run(['git', '--version'], check=True, capture_output=True)
+        except FileNotFoundError:
+            print("[Error] Git is not installed or not in PATH. Cannot run --diff.")
+            return None
+
+        # check if path is a git repo
+        check = subprocess.run(
+            ['git', '-C', path, 'rev-parse', '--is-inside-work-tree'],
+            capture_output=True, text=True
+        )
+        if check.returncode != 0:
+            print(f"[Error] {path} is not a git repository. Cannot run --diff.")
+            return None
+
         # build git diff command
         cmd = ['git', '-C', path, 'diff']
         if target:
@@ -17,6 +33,7 @@ def get_diff(path: str, target: str = None) -> dict | None:
         result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode != 0:
+            print(f"[Error] git diff failed: {result.stderr.strip()}")
             return None
 
         diff_output = result.stdout

@@ -108,7 +108,15 @@ def generate_descriptions(ranked_files: list, llm_provider: str = None, api_key:
         try:
             descriptions = _generate_llm_descriptions(ranked_files, llm_provider, api_key)
         except Exception as e:
-            print(f"[Warning] LLM descriptions failed: {e}. Using heuristic descriptions.")
+            err = str(e).lower()
+            if '429' in err or 'rate limit' in err or 'quota' in err:
+                print("[Warning] LLM rate limit hit. Using heuristic descriptions.")
+            elif 'network' in err or 'connection' in err or 'timeout' in err or 'unreachable' in err:
+                print("[Warning] No internet connection. Using heuristic descriptions.")
+            elif 'invalid api key' in err or 'unauthorized' in err or '401' in err:
+                print("[Warning] Invalid API key. Using heuristic descriptions.")
+            else:
+                print(f"[Warning] LLM descriptions failed: {e}. Using heuristic descriptions.")
             descriptions = {}
 
     # fill in any missing with heuristics (also used as full fallback)
