@@ -235,7 +235,7 @@ def scan(
     # --- NORMAL SCAN MODE ---
     if cached:
         console.print(f"[green]Using cached result (repo unchanged). Use --clear-cache to force re-analysis.[/green]")
-        console.print(cached)
+        console.print(cached, markup=False)
         if output:
             save_output(cached, output)
         return
