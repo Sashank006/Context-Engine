@@ -6,7 +6,7 @@ ContextPack scans any codebase and generates a structured, token-efficient summa
 ---
 
 ## Demo
-
+![Demo](demo.gif)
 Run ContextPack on the [Gemini CLI](https://github.com/google-gemini/gemini-cli) repository (1600+ files, TypeScript codebase):
 
 ```

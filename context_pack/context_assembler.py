@@ -56,7 +56,13 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
         lines.append(f"Secondary Languages: {', '.join(secondary.keys())}")
     lines.append(f"Framework: {analysis['framework']}")
     lines.append(f"Architectural Pattern: {', '.join(analysis['patterns'])}")
-    lines.append(f"Entry Point: {analysis['entry_point']}")
+    ep = analysis['entry_point']
+    if analysis.get('path'):
+        try:
+            ep = os.path.relpath(ep, analysis['path'])
+        except ValueError:
+            pass
+    lines.append(f"Entry Point: {ep}")
     lines.append(f"Total Files: {len(analysis['files'])}")
 
     all_deps = analysis.get('dependencies', [])
@@ -64,17 +70,17 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     dev_deps = [d['name'] for d in all_deps if d.get('dev', False)]
 
     if runtime_deps:
-        dep_line = f"Dependencies: {', '.join(runtime_deps)}"
-        base = '\n'.join(lines)
-        if len(base) + len(dep_line) > metadata_char_budget:
-            dep_line = f"Dependencies: {', '.join(runtime_deps[:10])} ... (truncated)"
+        shown = runtime_deps[:10]
+        dep_line = f"Dependencies: {', '.join(shown)}"
+        if len(runtime_deps) > 10:
+            dep_line += f" ... and {len(runtime_deps) - 10} more"
         lines.append(dep_line)
 
     if dev_deps:
-        dev_line = f"Dev Dependencies: {', '.join(dev_deps)}"
-        base = '\n'.join(lines)
-        if len(base) + len(dev_line) > metadata_char_budget:
-            dev_line = f"Dev Dependencies: {', '.join(dev_deps[:5])} ... (truncated)"
+        shown = dev_deps[:5]
+        dev_line = f"Dev Dependencies: {', '.join(shown)}"
+        if len(dev_deps) > 5:
+            dev_line += f" ... and {len(dev_deps) - 5} more"
         lines.append(dev_line)
 
     return '\n'.join(lines)
@@ -106,7 +112,7 @@ def build_file_snippet(filepath: str, char_budget: int) -> str:
         return None
 
 
-def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> str:
+def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS, no_snippets: bool = False) -> str:
     total_files = len(analysis['files'])
     ranked = analysis.get('ranked_files', [])
 
@@ -142,6 +148,23 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
     per_file_budget = remaining_snippet_budget // max(len(files_to_show), 1)
 
     file_descriptions = analysis.get('file_descriptions', {})
+    # get base path for relative path display
+    base_path = analysis.get('path', '')
+
+    # if no_snippets, just show filename + description
+    if no_snippets:
+        for fp, _ in files_to_show:
+            try:
+                display_fp = os.path.relpath(fp, base_path) if base_path else fp
+            except ValueError:
+                display_fp = fp
+            description = file_descriptions.get(fp, '')
+            if description:
+                sections.append(f"\n> {description}\n--- {display_fp} ---")
+            else:
+                sections.append(f"\n--- {display_fp} ---")
+        sections.append(f"\n=== Token estimate: {estimate_tokens(metadata)} / {max_tokens} ===")
+        return '\n'.join(sections)
 
     for fp, _ in files_to_show:
         snippet = build_file_snippet(fp, per_file_budget)
@@ -152,6 +175,14 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS) -> st
         if description:
             desc_line = f"\n> {description}"
             snippet = desc_line + snippet
+        # make path relative for display
+        display_fp = fp
+        if base_path:
+            try:
+                display_fp = os.path.relpath(fp, base_path)
+            except ValueError:
+                display_fp = fp
+        snippet = snippet.replace(fp, display_fp)
         if len(snippet) > remaining_snippet_budget:
             sections.append("\n[Token budget reached — use Deep Dive for remaining files]")
             break

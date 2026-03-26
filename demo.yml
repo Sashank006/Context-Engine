@@ -1,0 +1,476 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: powershell.exe
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: C:\Users\Sasha\context-pack
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 210
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 58
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Terminalizer
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+  
+  # The size of the font
+  fontSize: 12
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+  
+# Records, feel free to edit them
+records:
+  - delay: 923
+    content: "\e[?9001h\e[?1004h"
+  - delay: 122
+    content: "\e[?25l\e[2J\e[m\e[HWindows PowerShell\r\nCopyright (C) Microsoft Corporation. All rights reserved.\e[4;1HInstall the latest PowerShell for new features and improvements! https://aka.ms/PSWindows\e]0;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\a\e[?25h"
+  - delay: 11
+    content: "\e[?25l\e[6;1H\e[?25h"
+  - delay: 159
+    content: 'PS C:\Users\Sasha\context-pack> '
+  - delay: 2212
+    content: "\e[?25l"
+  - delay: 18
+    content: "\e[91m\e[6;31H> \e[37m.\e[?25h"
+  - delay: 652
+    content: "\e[m\e[?25l"
+  - delay: 15
+    content: "\e[6;31H> \e[93m.\\\e[?25h"
+  - delay: 493
+    content: "\e[m\e[?25l"
+  - delay: 11
+    content: "\e[93m\e[6;33H.\\v\e[?25h"
+  - delay: 136
+    content: "\e[m\e[?25l"
+  - delay: 10
+    content: "\e[93m\e[6;33H.\\ve\e[?25h"
+  - delay: 169
+    content: "\e[m\e[?25l"
+  - delay: 12
+    content: "\e[93m\e[6;33H.\\ven\e[?25h"
+  - delay: 253
+    content: "\e[m\e[?25l"
+  - delay: 20
+    content: "\e[93m\e[6;33H.\\venv\e[?25h"
+  - delay: 646
+    content: "\e[m\e[?25l"
+  - delay: 21
+    content: "\e[93m\e[6;33H.\\venv\\\e[?25h"
+  - delay: 291
+    content: "\e[m\e[?25l"
+  - delay: 17
+    content: "\e[93m\e[6;33H.\\venv\\s\e[?25h"
+  - delay: 175
+    content: "\e[?25l\e[m\e[93m\e[6;33H.\\venv\\sc"
+  - delay: 21
+    content: "\e[m\e[?25h"
+  - delay: 177
+    content: "\e[?25l"
+  - delay: 17
+    content: "\e[93m\e[6;33H.\\venv\\scr\e[?25h"
+  - delay: 158
+    content: "\e[m\e[?25l"
+  - delay: 9
+    content: "\e[93m\e[6;33H.\\venv\\scri\e[?25h"
+  - delay: 206
+    content: "\e[m\e[?25l"
+  - delay: 13
+    content: "\e[93m\e[6;33H.\\venv\\scrip\e[?25h"
+  - delay: 93
+    content: "\e[m\e[?25l"
+  - delay: 14
+    content: "\e[93m\e[6;33H.\\venv\\script\e[?25h"
+  - delay: 1135
+    content: "\e[m\e[?25l"
+  - delay: 20
+    content: "\e[93m\e[6;33H.\\venv\\scripts\e[?25h"
+  - delay: 679
+    content: "\e[m\e[?25l"
+  - delay: 21
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\\e[?25h"
+  - delay: 229
+    content: "\e[m\e[?25l"
+  - delay: 9
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\a\e[?25h"
+  - delay: 224
+    content: "\e[m\e[?25l"
+  - delay: 16
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\ac\e[?25h"
+  - delay: 202
+    content: "\e[m\e[?25l"
+  - delay: 21
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\act\e[?25h"
+  - delay: 111
+    content: "\e[m\e[?25l"
+  - delay: 14
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\acti\e[?25h"
+  - delay: 219
+    content: "\e[m\e[?25l"
+  - delay: 12
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\activ\e[?25h"
+  - delay: 383
+    content: "\e[m\e[?25l"
+  - delay: 20
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\activa\e[?25h"
+  - delay: 174
+    content: "\e[m\e[?25l"
+  - delay: 18
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\activat\e[?25h"
+  - delay: 123
+    content: "\e[m\e[?25l"
+  - delay: 15
+    content: "\e[93m\e[6;33H.\\venv\\scripts\\activate\e[?25h"
+  - delay: 231
+    content: "\e[m"
+  - delay: 13
+    content: "\r\n"
+  - delay: 204
+    content: "\e[38;5;10m(venv) "
+  - delay: 11
+    content: "\e[mPS C:\\Users\\Sasha\\context-pack> "
+  - delay: 2760
+    content: "\e[?25l"
+  - delay: 12
+    content: "\e[93mcontext-pack \e[90m--path \e[37m~/next.js \e[90m--no-snippets\e[?25h"
+  - delay: 1535
+    content: "\e[m"
+  - delay: 11
+    content: "\r\n"
+  - delay: 431
+    content: "\e[34mScanning: C:\\Users\\Sasha/next.js\r\n"
+  - delay: 13
+    content: "\e[m"
+  - delay: 1457
+    content: "\e[?25l\e[32mFound \e[1m1356\e[22m files\e[11;1H\e[?25h"
+  - delay: 11
+    content: "\e[?25l\e[m\e[3m                                        Code Files                                        \e[23m\r\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\r\n┃\e[1m File                                                                                   \e[22m┃\r\n┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩\r\n│ \e[36mpackages\\next\\src\\client\\portal\\index.tsx\e[46X\e[m\e[46C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\google-font-display.ts\e[27X\e[m\e[27C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\google-font-preconnect.ts\e[24X\e[m\e[24C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\inline-script-id.ts\e[30X\e[m\e[30C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\next-script-for-ga.ts\e[28X\e[m\e[28C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-assign-module-variable.ts\e[21X\e[m\e[21C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-async-client-component.ts\e[21X\e[m\e[21C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-before-interactive-script-outside-document.ts \e[m│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-css-tags.ts\e[35X\e[m\e[35C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-document-import-in-page.ts\e[20X\e[m\e[20C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-duplicate-head.ts\e[29X\e[m\e[29C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-head-element.ts\e[31X\e[m\e[31C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-head-import-in-document.ts\e[20X\e[m\e[20C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-html-link-for-pages.ts\e[24X\e[m\e[24C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-img-element.ts\e[32X\e[m\e[32C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-page-custom-font.ts\e[27X\e[m\e[27C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-script-component-in-head.ts\e[19X\e[m\e[19C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-styled-jsx-in-document.ts\e[21X\e[m\e[21C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-sync-scripts.ts\e[31X\e[m\e[31C│\r\n│ \e[36mpackages\\eslint-plugin-next\\src\\rules\\no-title-in-document-head.ts\e[21X\e[m\e[21C│\r\n│ \e[36m... and 1336 more\e[70X\e[m\e[70C│\r\n└────────────────────────────────────────────────────────────────────────────────────────┘\r\n=== PROJECT SUMMARY ===\r\nLanguage: TypeScript\r\nFramework: Next.js\r\nArchitectural Pattern: REST API\r\nEntry Point: packages\\create-next-app\\create-app.ts\r\nTotal Files: \e[36m\e[1m1356\e[m\r\nDependencies: @rspack/core, @next/rspack-binding\r\nDev Dependencies: @actions/core, @ast-grep/cli, @babel/core, @babel/eslint-parser, @babel/generator \e[33m... \e[mand \e[36m\e[1m189\e[m more\e[47;1H=== KEY FILES ===\e[49;1H> Client-side — entry/barrel file\r\n--- packages\\next\\src\\client\\app-index.tsx ---\e[52;1H> Application root\r\n--- packages\\create-next-app\\create-app.ts ---\e[55;1H> Client-side — application root\r\n--- packages\\next\\src\\client\\app-call-server.ts ---\e[58;1H> Page — application root\r\e[?25h\n--- packages\\next\\src\\pages\\_app.tsx ---\r\n\n> Client-side — main entry point\r\n--- packages\\next\\src\\client\\get-domain-locale.ts ---\r\n\n> Library/utility — application root\r\n--- packages\\next\\src\\lib\\is-app-route-route.ts ---\r\n\n> Server-side — application root\r\n--- packages\\next\\src\\server\\app-render\\app-render.tsx ---\r\n\n> UI component — application root\r\n--- packages\\next\\src\\client\\components\\app-router-headers.ts ---\r\n\n> Library/utility — application root\r\n--- packages\\next\\src\\server\\lib\\app-dir-module.ts ---\r\n\n> UI component — application root\r\n--- packages\\next\\src\\client\\components\\app-router-utils.ts ---\r\n\n> Server-side — server setup\r\n--- packages\\next\\src\\server\\base-server.ts ---\r\n\n> Client-side — entry/barrel file\r\n--- packages\\next\\src\\client\\index.tsx ---\r\n\n> UI component — application root\r\n--- packages\\next\\src\\client\\components\\app-router-instance.ts ---\r\n\n> Server-side — application root\r\n--- packages\\next\\src\\server\\route-definitions\\app-route-route-definition.ts ---\r\n\n> Server-side — server setup\r\n--- packages\\next\\src\\server\\server-utils.ts ---\r\n\n> Client-side — application root\r\n--- packages\\next\\src\\client\\app-find-source-map-url.ts ---\r\n\n> Server-side — server setup\r\n--- packages\\next\\src\\server\\next-server.ts ---\r\n\n> Library/utility — server setup\r\n--- packages\\next\\src\\server\\lib\\router-server.ts ---\r\n\n> Server-side — application root\r\n--- packages\\next\\src\\server\\web\\edge-route-module-wrapper.ts ---\r\n\n=== Token estimate: \e[36m\e[1m88\e[m \e[35m/ \e[36m\e[1m2000\e[m ===\e[K\r\n"
+  - delay: 181
+    content: "\e[38;5;10m(venv) \e[mPS C:\\Users\\Sasha\\context-pack> "
+  - delay: 13875
+    content: "\e[?25l"
+  - delay: 23
+    content: "\e[93mcontext-pack \e[90m--path \e[37m~/next.js \e[90m--no-snippets\e[?25h"
+  - delay: 1050
+    content: "\e[m\e[?25l"
+  - delay: 12
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--no-        \e[58;75H\e[?25h"
+  - delay: 143
+    content: "\e[m\e[?25l"
+  - delay: 23
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--   \e[58;72H\e[?25h"
+  - delay: 1995
+    content: "\e[m\e[?25l"
+  - delay: 11
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--l\e[?25h"
+  - delay: 103
+    content: "\e[m\e[?25l"
+  - delay: 15
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--ll\e[?25h"
+  - delay: 247
+    content: "\e[m\e[?25l"
+  - delay: 23
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm\e[?25h"
+  - delay: 140
+    content: "\e[m\e[?25l"
+  - delay: 10
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[?25h"
+  - delay: 498
+    content: "\e[m\e[?25l"
+  - delay: 19
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mg\e[?25h"
+  - delay: 173
+    content: "\e[m\e[?25l"
+  - delay: 21
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mge\e[?25h"
+  - delay: 122
+    content: "\e[m\e[?25l"
+  - delay: 11
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgem\e[?25h"
+  - delay: 180
+    content: "\e[m\e[?25l"
+  - delay: 12
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemi\e[?25h"
+  - delay: 110
+    content: "\e[m\e[?25l"
+  - delay: 15
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemin\e[?25h"
+  - delay: 96
+    content: "\e[m\e[?25l"
+  - delay: 15
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini\e[?25h"
+  - delay: 1286
+    content: "\e[m\e[?25l"
+  - delay: 11
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[?25h"
+  - delay: 218
+    content: "\e[m\e[?25l"
+  - delay: 12
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini -\e[?25h"
+  - delay: 104
+    content: "\e[m\e[?25l"
+  - delay: 13
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--\e[?25h"
+  - delay: 759
+    content: "\e[m\e[?25l"
+  - delay: 14
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--d\e[?25h"
+  - delay: 162
+    content: "\e[m\e[?25l"
+  - delay: 9
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--de\e[?25h"
+  - delay: 132
+    content: "\e[m\e[?25l"
+  - delay: 20
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--dee\e[?25h"
+  - delay: 86
+    content: "\e[m\e[?25l"
+  - delay: 10
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--deep\e[?25h"
+  - delay: 660
+    content: "\e[m\e[?25l"
+  - delay: 18
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--deep-\e[?25h"
+  - delay: 292
+    content: "\e[m\e[?25l"
+  - delay: 14
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--deep-d\e[?25h"
+  - delay: 212
+    content: "\e[m\e[?25l"
+  - delay: 13
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--deep-di\e[?25h"
+  - delay: 157
+    content: "\e[m\e[?25l"
+  - delay: 20
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--deep-div\e[?25h"
+  - delay: 191
+    content: "\e[m\e[?25l"
+  - delay: 24
+    content: "\e[93m\e[58;40Hcontext-pack \e[90m--path \e[37m~/next.js \e[90m--llm \e[37mgemini \e[90m--deep-dive\e[?25h"
+  - delay: 518
+    content: "\e[m"
+  - delay: 16
+    content: "\r\n"
+  - delay: 1972
+    content: "\n=== Deep Dive Mode ===\r\nAsk anything about the codebase. Type 'exit' to quit.\r\n"
+  - delay: 15
+    content: "\nYou:\e[1C"
+  - delay: 2029
+    content: i
+  - delay: 128
+    content: m
+  - delay: 202
+    content: ' '
+  - delay: 180
+    content: 'n'
+  - delay: 126
+    content: e
+  - delay: 138
+    content: w
+  - delay: 92
+    content: ' '
+  - delay: 176
+    content: t
+  - delay: 54
+    content: o
+  - delay: 146
+    content: ' '
+  - delay: 224
+    content: h
+  - delay: 426
+    content: "\b \b"
+  - delay: 188
+    content: t
+  - delay: 109
+    content: h
+  - delay: 229
+    content: i
+  - delay: 86
+    content: s
+  - delay: 211
+    content: ' '
+  - delay: 185
+    content: c
+  - delay: 89
+    content: o
+  - delay: 104
+    content: d
+  - delay: 151
+    content: e
+  - delay: 164
+    content: b
+  - delay: 76
+    content: a
+  - delay: 174
+    content: s
+  - delay: 138
+    content: e
+  - delay: 636
+    content: ','
+  - delay: 214
+    content: ' '
+  - delay: 752
+    content: w
+  - delay: 94
+    content: h
+  - delay: 116
+    content: e
+  - delay: 172
+    content: r
+  - delay: 136
+    content: e
+  - delay: 96
+    content: ' '
+  - delay: 71
+    content: d
+  - delay: 85
+    content: o
+  - delay: 112
+    content: ' '
+  - delay: 124
+    content: i
+  - delay: 120
+    content: ' '
+  - delay: 157
+    content: s
+  - delay: 169
+    content: t
+  - delay: 41
+    content: a
+  - delay: 163
+    content: r
+  - delay: 130
+    content: t
+  - delay: 568
+    content: '?'
+  - delay: 714
+    content: "\r\n"
+  - delay: 12859
+    content: "\nAssistant: Based on the project summary and key files, here's where you can start to understand this Next.js codebase:\r\n\n1.  **Project Creation/Scaffolding (`packages\\create-next-app\\create-app.ts`)**: This is the designated \"Entry Point\" and the core file for *creating* a new Next.js application. If you want to understand how a \r\n\e[57;210H new Next.js project is initialized, including setting up dependencies, templates, and configurations, this is your starting point. It contains the `createApp` function which orchestrates the entire process.    \r\n\n2.  **Server-side Initialization (`packages\\next\\src\\server\\next-server.ts` and `packages\\next\\src\\server\\base-server.ts`)**:\r\n    *   `next-server.ts`: This file is crucial for the Next.js server setup. It initializes the Next.js server, handles routing, rendering, and various server-side configurations. It imports `base-server.ts` wh\r\n\e[57;210Hhich provides foundational server utilities.\r\n    *   `base-server.ts`: Defines the `BaseNextServer` class, providing the core logic for a Next.js server, including handling requests, loading components, and managing the build output.\r\n\n3.  **Client-side Entry Points**:\r\n    *   `packages\\next\\src\\client\\index.tsx`: This is a primary client-side entry point, responsible for bootstrapping the React application in the browser, setting up routing context, error handling, and more.\e[58;1H\n    *   `packages\\next\\src\\client\\app-index.tsx`: This appears to be another significant client-side entry, specifically for the App Router in Next.js. It deals with React Server Components (RSC) and related cl\r\n\e[57;210Hlient-side hydration logic.\r\n\nTo begin, I recommend starting with `packages\\create-next-app\\create-app.ts` to see how the project structure is laid out. Then, delve into `packages\\next\\src\\server\\next-server.ts` for server-side logic and `p\r\n\e[57;210Hpackages\\next\\src\\client\\index.tsx` (and `app-index.tsx`) for client-side rendering.\r\n"
+  - delay: 12
+    content: "\nYou:\e[1C"
+  - delay: 4930
+    content: e
+  - delay: 101
+    content: x
+  - delay: 142
+    content: i
+  - delay: 279
+    content: t
+  - delay: 364
+    content: "\r\nExiting Deep Dive.\r"
+  - delay: 10
+    content: |+
+
+  - delay: 267
+    content: "\e[38;5;10m(venv) \e[mPS C:\\Users\\Sasha\\context-pack> "
+  - delay: 733
+    content: "\e[?25l"
+  - delay: 13
+    content: "\e[93me\e[?25h"
+  - delay: 152
+    content: "\e[m\e[?25l"
+  - delay: 19
+    content: "\e[93m\bex\e[?25h"
+  - delay: 189
+    content: "\e[m\e[?25l"
+  - delay: 17
+    content: "\e[93m\e[58;40Hexi\e[?25h"
+  - delay: 166
+    content: "\e[m\e[?25l"
+  - delay: 17
+    content: "\e[92m\e[58;40Hexit\e[?25h"
+  - delay: 363
+    content: "\e[m"
+  - delay: 22
+    content: "\r\n"
