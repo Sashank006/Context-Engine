@@ -1,13 +1,38 @@
 # ContextPack 🗜️
-> LLM-Ready Codebase Context Engine
 
-ContextPack scans any codebase and generates a structured, token-efficient summary you can drop straight into any LLM — so you spend less time explaining your code and more time building.
+> A static analysis engine that maps any codebase into a ranked, token-budgeted context — offline, zero LLM cost, under 10 seconds.
+
+---
+
+## How It Works
+
+```
+scan (two-pass) → detect language/framework → parse dependencies
+               → detect entry points → rank files (import graph + heuristics)
+               → detect patterns → assemble context (token-budgeted)
+```
+
+**Pass 1** — walks the full directory tree collecting only folder names and file counts. Prunes ignored subtrees instantly with zero file reads.
+
+**Pass 2** — walks only approved folders. Scores every code file using a multi-signal ranking function: filename heuristics, content signals, import graph traversal across 9 languages, and depth penalties. Assembles output within a strict token budget using a 20/80 metadata/snippet split.
+
+LLM is an optional enhancement layer — the static engine is the core.
+
+---
+
+## Why It Exists
+
+Pasting a codebase into an LLM doesn't work past ~20 files — you hit the token limit before you've explained anything. Grep tools require you to already know what to search for. Manual skimming doesn't scale and misses import relationships.
+
+ContextPack solves the **cold start problem**: before you know what questions to ask, it tells you where to look.
 
 ---
 
 ## Demo
+
 ![Demo](demo.gif)
-Run ContextPack on the [Next.js](https://github.com/vercel/next.js) repository:
+
+Run on the [Next.js](https://github.com/vercel/next.js) repository (3039 files):
 
 ```
 $ context-pack --path ~/next.js --no-snippets --top 5
@@ -44,24 +69,29 @@ Dev Dependencies: typescript, eslint, jest ... and 189 more
 
 ---
 
-## Features
+## Engine Capabilities
 
-- **Two-pass scanner** — fast directory walk that prunes ignored folders before reading any files, then ranks survivors
-- **Static analysis engine** — detects language, framework, architectural patterns, entry points, and dependencies with zero LLM cost
-- **Smart file ranking** — multi-signal scoring combining filename heuristics, content signals, import graph analysis across 9 languages, and depth penalties
-- **File descriptions** — every key file gets a one-line description (heuristic by default, LLM-powered with `--llm`)
-- **Token-efficient output** — adaptive 20/80 metadata/snippet split, priority-first assembly, never truncates mid-file
-- **Runtime vs dev dependencies** — separates runtime dependencies from dev/build tools, capped at 10/5 for clean display
-- **Relative paths** — all file paths shown relative to scanned root, no system paths exposed
-- **LLM validation** — optional re-ranking of files using your own API key (Gemini, OpenAI, Anthropic)
-- **Deep Dive mode** — RAG-powered conversation loop with query-aware smart snippets, straight to questions, no noise
-- **Session memory** — automatically compresses conversation history to stay within token limits
-- **GitHub URL support** — clone and scan any public repo in one command with `--url`
-- **Cache layer** — results cached by file path + mtime, instant re-runs on unchanged codebases
-- **Diff-aware context** — show unstaged changes or diff against any branch with `--diff`
-- **Output to file** — save context as `.md` or `.txt` silently, no terminal spam
-- **`.contextignore` support** — exclude folders and file patterns per-project, just like `.gitignore`
-- **40+ languages supported** — Python, C, C++, JavaScript, TypeScript, Rust, Go, Java, Kotlin, Lua, and more
+| Component | What it does |
+|---|---|
+| **Two-pass scanner** | Prunes ignored folders before reading any files — fast on large repos |
+| **Import graph** | Traces import/require relationships across 9 languages to weight file importance |
+| **File ranker** | Multi-signal scoring: filename heuristics + content signals + import depth + path depth |
+| **Language detector** | Primary + secondary language detection across 40+ language configs |
+| **Framework detector** | Runtime deps only, priority-ordered, 10+ frameworks |
+| **Pattern detector** | Identifies REST API, MVC, CLI Tool, Microservice patterns via keyword signals |
+| **Token assembler** | Adaptive 20/80 metadata/snippet split — never truncates mid-file |
+| **LLM layer** | Optional re-ranking + descriptions via Gemini/OpenAI/Anthropic — bring your own key |
+| **Deep Dive** | RAG conversation loop with query-aware smart snippets and session compression |
+
+---
+
+## Known Limitations
+
+- File ranking is heuristic-based — self-referential files may score incorrectly without `--llm`
+- Pattern detection uses keyword matching, not structural analysis
+- Token estimation uses `tiktoken` (cl100k_base) — accurate for GPT models, approximate for others
+- Monorepos with multiple entry points return only the first detected entry point
+- Projects embedding a scripting language in C source may show wrong primary language — use `.contextignore` to exclude non-core folders
 
 ---
 
@@ -175,29 +205,3 @@ contrib
 ## Supported Languages
 
 Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Kotlin, Lua, Shell, VimScript, Scala, Haskell, Elixir, Dart, R, HTML, CSS and more.
-
----
-
-## How It Works
-
-```
-scan (two-pass) → detect language → detect framework → parse dependencies
-                → detect entry point → rank files → detect patterns
-                → generate descriptions → assemble context (token-budgeted)
-```
-
-**Pass 1** — walks the full directory tree collecting only folder names and file counts, pruning ignored subtrees instantly with no file reads.
-
-**Pass 2** — walks only approved folders, collecting code files while skipping test files, config files, minified files, and generated code.
-
-LLM is an optional enhancement layer — the static engine works standalone.
-
----
-
-## Known Limitations
-
-- File ranking is heuristic-based — self-referential files may score incorrectly without LLM validation
-- Pattern detection uses keyword matching, not structural analysis
-- Token estimation uses `tiktoken` (cl100k_base encoding) — accurate for GPT models, approximate for others
-- Monorepos with multiple entry points return only the first detected entry point — full monorepo support planned
-- Projects deeply embedding a scripting language in C source may show wrong primary language — use `.contextignore` to exclude non-core folders
