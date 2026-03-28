@@ -57,9 +57,9 @@ def build_metadata_block(analysis: dict, metadata_char_budget: int) -> str:
     lines.append(f"Framework: {analysis['framework']}")
     lines.append(f"Architectural Pattern: {', '.join(analysis['patterns'])}")
     ep = analysis['entry_point']
-    if analysis.get('path'):
+    if ep and analysis.get('path'):
         try:
-            ep = os.path.relpath(ep, analysis['path'])
+            ep = os.path.relpath(os.path.normpath(ep), os.path.normpath(analysis['path']))
         except ValueError:
             pass
     lines.append(f"Entry Point: {ep}")
@@ -112,7 +112,7 @@ def build_file_snippet(filepath: str, char_budget: int) -> str:
         return None
 
 
-def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS, no_snippets: bool = False) -> str:
+def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS, no_snippets: bool = False, top: int = None) -> str:
     total_files = len(analysis['files'])
     ranked = analysis.get('ranked_files', [])
 
@@ -144,7 +144,8 @@ def assemble_context(analysis: dict, max_tokens: int = DEFAULT_MAX_TOKENS, no_sn
         sections.append("\n[No files available to display]")
 
     # iterate top 25% of ranked files, add as many as budget allows
-    files_to_show = ranked[:min(important_count, 25)]
+    cap = top if top is not None else 25
+    files_to_show = ranked[:min(important_count, cap)]
     per_file_budget = remaining_snippet_budget // max(len(files_to_show), 1)
 
     file_descriptions = analysis.get('file_descriptions', {})

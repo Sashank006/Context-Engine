@@ -7,37 +7,39 @@ ContextPack scans any codebase and generates a structured, token-efficient summa
 
 ## Demo
 ![Demo](demo.gif)
-Run ContextPack on the [Gemini CLI](https://github.com/google-gemini/gemini-cli) repository (1600+ files, TypeScript codebase):
+Run ContextPack on the [Next.js](https://github.com/vercel/next.js) repository:
 
 ```
-$ context-pack --url https://github.com/google-gemini/gemini-cli
-
-Cloning https://github.com/google-gemini/gemini-cli...
-Cloned successfully.
-Scanning: /tmp/contextpack_xyz
-Found 853 files
+$ context-pack --path ~/next.js --no-snippets --top 5
 
 === PROJECT SUMMARY ===
 Language: TypeScript
-Secondary Languages: Rust
-Framework: Ink
-Architectural Pattern: Microservice, CLI Tool, MVC
-Entry Point: packages/cli/index.ts
-Total Files: 853
-Dependencies: ink, latest-version, node-fetch-native, simple-git
-Dev Dependencies: eslint, vitest, typescript-eslint, esbuild ...
+Secondary Languages: JavaScript
+Framework: Next.js
+Architectural Pattern: REST API, MVC
+Entry Point: packages/next/src/server/next.ts
+Total Files: 3039
+Dependencies: react, react-dom, styled-jsx ... and 4 more
+Dev Dependencies: typescript, eslint, jest ... and 189 more
 
 === KEY FILES ===
 
-> Entry/barrel file
---- packages/cli/index.ts ---
-...
+> Core — entry/barrel file
+--- packages/next/src/client/index.tsx ---
 
-> Core — cli interface
---- packages/core/src/agents/cli-help-agent.ts ---
-...
+> Server setup
+--- packages/next/src/server/base-server.ts ---
 
-=== Token estimate: 7297 / 12000 ===
+> Core — application root
+--- packages/next/src/server/app-render/app-render.tsx ---
+
+> Configuration — configuration
+--- packages/next/src/server/config.ts ---
+
+> Client-side — main entry point
+--- packages/next/src/client/app-index.tsx ---
+
+=== Token estimate: 1823 / 12000 ===
 ```
 
 ---
@@ -48,15 +50,16 @@ Dev Dependencies: eslint, vitest, typescript-eslint, esbuild ...
 - **Static analysis engine** — detects language, framework, architectural patterns, entry points, and dependencies with zero LLM cost
 - **Smart file ranking** — multi-signal scoring combining filename heuristics, content signals, import graph analysis across 9 languages, and depth penalties
 - **File descriptions** — every key file gets a one-line description (heuristic by default, LLM-powered with `--llm`)
-- **Token-efficient output** — adaptive 20/80 metadata/snippet split, priority-first assembly, never truncates mid-file, capped at 25 key files
-- **Runtime vs dev dependencies** — separates runtime dependencies from dev/build tools in the summary
+- **Token-efficient output** — adaptive 20/80 metadata/snippet split, priority-first assembly, never truncates mid-file
+- **Runtime vs dev dependencies** — separates runtime dependencies from dev/build tools, capped at 10/5 for clean display
+- **Relative paths** — all file paths shown relative to scanned root, no system paths exposed
 - **LLM validation** — optional re-ranking of files using your own API key (Gemini, OpenAI, Anthropic)
-- **Deep Dive mode** — RAG-powered conversation loop with query-aware smart snippets, ask questions about any codebase interactively
+- **Deep Dive mode** — RAG-powered conversation loop with query-aware smart snippets, straight to questions, no noise
 - **Session memory** — automatically compresses conversation history to stay within token limits
 - **GitHub URL support** — clone and scan any public repo in one command with `--url`
 - **Cache layer** — results cached by file path + mtime, instant re-runs on unchanged codebases
 - **Diff-aware context** — show unstaged changes or diff against any branch with `--diff`
-- **Output to file** — save context as `.md` or `.txt` for sharing or reuse
+- **Output to file** — save context as `.md` or `.txt` silently, no terminal spam
 - **`.contextignore` support** — exclude folders and file patterns per-project, just like `.gitignore`
 - **40+ languages supported** — Python, C, C++, JavaScript, TypeScript, Rust, Go, Java, Kotlin, Lua, and more
 
@@ -71,7 +74,6 @@ Dev Dependencies: eslint, vitest, typescript-eslint, esbuild ...
 
 ## Installation
 
-### Quick install
 ```bash
 pip install git+https://github.com/Sashank006/Context-Engine.git
 ```
@@ -107,12 +109,26 @@ context-pack --path /path/to/repo
 context-pack --url https://github.com/org/repo
 ```
 
-### Save output to file
+### Clean summary — no code snippets
+```bash
+context-pack --no-snippets
+```
+
+### Show only top N key files
+```bash
+context-pack --top 5
+```
+
+### Combine for a tight one-screen summary
+```bash
+context-pack --no-snippets --top 5
+```
+
+### Save output to file (silent — no terminal spam)
 ```bash
 context-pack --output context.md
 context-pack --output context.txt
 ```
-> `.md` output renders with tables and syntax-highlighted code blocks. View in VS Code (`Ctrl+Shift+V`), GitHub, or any markdown renderer.
 
 ### Set custom token budget
 ```bash
@@ -144,7 +160,6 @@ context-pack --clear-cache             # clear cache for current path
 ```
 
 ### Ignore folders with `.contextignore`
-Create a `.contextignore` file in the project root:
 ```
 # ignore specific folders
 runtime
@@ -164,8 +179,6 @@ Python, JavaScript, TypeScript, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Ko
 ---
 
 ## How It Works
-
-ContextPack runs a strict separation-of-concerns pipeline:
 
 ```
 scan (two-pass) → detect language → detect framework → parse dependencies
@@ -187,4 +200,4 @@ LLM is an optional enhancement layer — the static engine works standalone.
 - Pattern detection uses keyword matching, not structural analysis
 - Token estimation uses `tiktoken` (cl100k_base encoding) — accurate for GPT models, approximate for others
 - Monorepos with multiple entry points return only the first detected entry point — full monorepo support planned
-- Projects deeply embedding a scripting language in C source (e.g. Neovim embeds Lua in `src/`) may show wrong primary language — use `.contextignore` to exclude non-core folders
+- Projects deeply embedding a scripting language in C source may show wrong primary language — use `.contextignore` to exclude non-core folders

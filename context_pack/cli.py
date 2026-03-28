@@ -171,6 +171,7 @@ def scan(
     llm: Optional[str] = typer.Option(None, "--llm", help="LLM provider: gemini, openai, anthropic"),
     deep_dive: bool = typer.Option(False, "--deep-dive", "-d", help="Start interactive Deep Dive mode after analysis"),
     no_snippets: bool = typer.Option(False, "--no-snippets", help="Show only file names and descriptions, no code snippets"),
+    top: int = typer.Option(None, "--top", help="Show only top N key files (e.g. --top 5)"),
     output: Optional[str] = typer.Option(None, "--output", "-o", help="Save context to file e.g. context.md or context.txt"),
     clear_cache_flag: bool = typer.Option(False, "--clear-cache", help="Clear cached result for this path and re-analyze"),
     show_diff: bool = typer.Option(False, "--diff", help="Show unstaged changes"),
@@ -253,7 +254,7 @@ def scan(
     if llm:
         console.print(f"[yellow]LLM validation enabled: {llm}[/yellow]")
 
-    result = analyze(path, max_tokens=budget, llm_provider=llm, skip_validation=False, no_snippets=no_snippets)
+    result = analyze(path, max_tokens=budget, llm_provider=llm, skip_validation=False, no_snippets=no_snippets, top=top)
 
     table = Table(title="Code Files")
     table.add_column("File", style="cyan")

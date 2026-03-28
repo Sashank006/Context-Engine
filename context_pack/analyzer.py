@@ -10,7 +10,7 @@ from context_pack.llm_validator import get_api_key, validate_ranking
 from context_pack.file_describer import generate_descriptions
 
 
-def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False, no_snippets=False):
+def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False, no_snippets=False, top=None):
     d = {}
     files, dep_files = scan_directory(path)
 
@@ -54,5 +54,5 @@ def analyze(path, max_tokens=2000, llm_provider=None, skip_validation=False, no_
     top_files = d['ranked_files'][:25]
     d['file_descriptions'] = generate_descriptions(top_files, llm_provider, api_key)
 
-    d['context'] = assemble_context(d, max_tokens=max_tokens, no_snippets=no_snippets)
+    d['context'] = assemble_context(d, max_tokens=max_tokens, no_snippets=no_snippets, top=top)
     return d
